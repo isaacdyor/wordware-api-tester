@@ -17,19 +17,17 @@ import { useLocal } from "@/hooks/useLocal";
 import { ChevronDown, ChevronUp, Play } from "lucide-react";
 import { useState, useEffect } from "react";
 
-type RunOutput = RunStatus & { status: RunStatus["status"] | "IDLE" };
-
 interface WordAppProps {
   app: AppWithVersions;
-  apiKey: string;
+  isOpened: boolean;
+  toggleOpen: () => void;
 }
 
-export function WordApp({ app, apiKey }: WordAppProps) {
+export function WordApp({ app, isOpened, toggleOpen }: WordAppProps) {
   const [appInputs, setAppInputs] = useState<Record<string, string | File>>({});
-  const [runOutput, setRunOutput] = useState<RunOutput | null>(null);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [runOutput, setRunOutput] = useState<RunStatus | null>(null);
   const [selectedVersion, setSelectedVersion] = useState(app.selectedVersion);
-  const { apps, updateApps } = useLocal();
+  const { apps, updateApps, apiKey } = useLocal();
 
   const appKey = `${app.orgSlug}/${app.appSlug}`;
 
@@ -96,10 +94,6 @@ export function WordApp({ app, apiKey }: WordAppProps) {
     }
   };
 
-  const toggleExpansion = () => {
-    setIsExpanded((prev) => !prev);
-  };
-
   const handleVersionChange = (version: string) => {
     setSelectedVersion(version);
     const updatedApps = apps.map((currentApp) =>
@@ -121,14 +115,14 @@ export function WordApp({ app, apiKey }: WordAppProps) {
     <li className="border rounded-lg overflow-hidden">
       <div
         className="flex justify-between items-center p-4 cursor-pointer bg-muted hover:bg-muted/80"
-        onClick={toggleExpansion}
+        onClick={toggleOpen}
       >
         <h3 className="text-lg font-semibold">
           {currentVersion?.title || app.appSlug}
         </h3>
-        {isExpanded ? <ChevronUp /> : <ChevronDown />}
+        {isOpened ? <ChevronUp /> : <ChevronDown />}
       </div>
-      {isExpanded && currentVersion && (
+      {isOpened && currentVersion && (
         <div className="p-4 space-y-4">
           <p className="text-sm text-muted-foreground">
             {currentVersion.description}

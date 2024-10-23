@@ -31,9 +31,10 @@ import {
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, Info, Loader2, Play } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { Output } from "./output";
 
 interface WordAppProps {
   app: AppWithVersions;
@@ -51,6 +52,8 @@ export function WordApp({
   updateApp,
 }: WordAppProps) {
   const [runOutput, setRunOutput] = useState<RunStatus | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const appKey = `${app.orgSlug}/${app.appSlug}`;
 
@@ -125,6 +128,26 @@ export function WordApp({
     }
   };
 
+  useEffect(() => {
+    if (isOpened) {
+      setIsClosing(false);
+    } else {
+      setIsClosing(true);
+      const timer = setTimeout(() => setIsClosing(false), 300); // Reduced from 500ms to 300ms
+      return () => clearTimeout(timer);
+    }
+  }, [isOpened]);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      if (isOpened) {
+        contentRef.current.style.maxHeight = `${contentRef.current.scrollHeight}px`;
+      } else {
+        contentRef.current.style.maxHeight = "0px";
+      }
+    }
+  }, [isOpened, currentVersion, runOutput]);
+
   return (
     <li className="border rounded-lg overflow-hidden">
       <div
@@ -166,14 +189,15 @@ export function WordApp({
         </div>
 
         <ChevronDown
-          className={`transform transition-transform duration-300 ease-in-out ${
+          className={`transform transition-transform duration-300 ease-out ${
             isOpened ? "rotate-180" : ""
           }`}
         />
       </div>
       <div
-        className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${
-          isOpened ? "max-h-[2000px]" : "max-h-0"
+        ref={contentRef}
+        className={`overflow-hidden transition-[max-height] duration-300 ease-out ${
+          isClosing ? "invisible" : ""
         }`}
       >
         {currentVersion && (
@@ -255,12 +279,7 @@ export function WordApp({
             {runOutput && (
               <div className="mt-4">
                 {runOutput.status === "COMPLETE" && runOutput.outputs && (
-                  <div>
-                    <h5 className="font-semibold">Outputs:</h5>
-                    <pre className="bg-muted p-2 rounded mt-2 overflow-x-auto">
-                      {JSON.stringify(runOutput.outputs, null, 2)}
-                    </pre>
-                  </div>
+                  <Output runOutputs={runOutput.outputs} />
                 )}
                 {runOutput.status === "ERROR" && runOutput.errors && (
                   <div>

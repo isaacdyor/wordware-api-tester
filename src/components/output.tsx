@@ -1,14 +1,13 @@
-import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "./ui/button";
-import { Braces, Table } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Braces, Table } from "lucide-react";
+import { useState } from "react";
+import { Button } from "./ui/button";
 
 export function Output({
   runOutputs,
@@ -19,8 +18,8 @@ export function Output({
 
   return (
     <Card className="w-full">
-      <CardContent className="pt-6 pr-2 relative">
-        <ScrollArea className="max-h-[500px] w-full pr-2">
+      <CardContent className="pt-6 relative">
+        <div className="max-h-[500px] overflow-y-scroll [scrollbar-width:none]">
           {jsonView ? (
             <pre className="text-muted-foreground whitespace-pre-wrap break-words text-sm">
               {JSON.stringify(runOutputs, null, 2)}
@@ -39,7 +38,8 @@ export function Output({
               ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
+
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>

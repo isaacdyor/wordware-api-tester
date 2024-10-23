@@ -9,6 +9,8 @@ export default function Home() {
   const { apps } = useLocal();
   const [openedApp, setOpenedApp] = useState<string | null>(null);
 
+  console.log(apps[0]);
+
   return (
     <div className="flex flex-col items-center min-h-screen p-4">
       <div className="w-full max-w-2xl space-y-4">

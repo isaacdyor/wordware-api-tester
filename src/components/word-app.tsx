@@ -24,7 +24,7 @@ interface WordAppProps {
 }
 
 export function WordApp({ app, isOpened, toggleOpen }: WordAppProps) {
-  const [appInputs, setAppInputs] = useState<Record<string, string | File>>({});
+  const [appInputs, setAppInputs] = useState<Record<string, string>>({});
   const [runOutput, setRunOutput] = useState<RunStatus | null>(null);
   const [selectedVersion, setSelectedVersion] = useState(app.selectedVersion);
   const { apps, updateApps, apiKey } = useLocal();
@@ -35,17 +35,11 @@ export function WordApp({ app, isOpened, toggleOpen }: WordAppProps) {
     setSelectedVersion(app.selectedVersion);
   }, [app.selectedVersion]);
 
-  const handleInputChange = (inputName: string, value: string | File) => {
+  const handleInputChange = (inputName: string, value: string) => {
     setAppInputs((prev) => ({
       ...prev,
       [inputName]: value,
     }));
-  };
-
-  const handleFileInputChange = (inputName: string, files: FileList | null) => {
-    if (files && files.length > 0) {
-      handleInputChange(inputName, files[0]);
-    }
   };
 
   const handleStartRun = async () => {
@@ -56,13 +50,10 @@ export function WordApp({ app, isOpened, toggleOpen }: WordAppProps) {
       );
       if (!version) throw new Error("Selected version not found");
 
-      // Convert file inputs to base64
-      const processedInputs: Record<string, string> = {};
-
       const runId = await startRun(
         apiKey,
         version,
-        processedInputs,
+        appInputs,
         app.orgSlug,
         app.appSlug
       );
@@ -172,25 +163,7 @@ export function WordApp({ app, isOpened, toggleOpen }: WordAppProps) {
                 {input.type === "longtext" ? (
                   <Textarea
                     id={`${appKey}-${input.name}`}
-                    value={
-                      typeof appInputs[input.name] === "string"
-                        ? (appInputs[input.name] as string)
-                        : ""
-                    }
-                    onChange={(e) =>
-                      handleInputChange(input.name, e.target.value)
-                    }
-                    placeholder={input.description || ""}
-                  />
-                ) : input.type === "text" ? (
-                  <Input
-                    id={`${appKey}-${input.name}`}
-                    type="text"
-                    value={
-                      typeof appInputs[input.name] === "string"
-                        ? (appInputs[input.name] as string)
-                        : ""
-                    }
+                    value={appInputs[input.name] || ""}
                     onChange={(e) =>
                       handleInputChange(input.name, e.target.value)
                     }
@@ -199,11 +172,12 @@ export function WordApp({ app, isOpened, toggleOpen }: WordAppProps) {
                 ) : (
                   <Input
                     id={`${appKey}-${input.name}`}
-                    type="file"
-                    accept={input.type === "image" ? "image/*" : "audio/*"}
+                    type="text"
+                    value={appInputs[input.name] || ""}
                     onChange={(e) =>
-                      handleFileInputChange(input.name, e.target.files)
+                      handleInputChange(input.name, e.target.value)
                     }
+                    placeholder={input.description || ""}
                   />
                 )}
               </div>

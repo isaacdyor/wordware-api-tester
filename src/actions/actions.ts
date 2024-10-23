@@ -93,14 +93,14 @@ export async function fetchAppVersions(
 
 export async function startRun(
   apiKey: string,
-  app: AppVersion,
+  version: string,
   inputs: Record<string, string>,
   orgSlug: string,
   appSlug: string
 ): Promise<string> {
   try {
     const response = await fetch(
-      `https://api.wordware.ai/v1alpha/apps/${orgSlug}/${appSlug}/${app.version}/runs`,
+      `https://api.wordware.ai/v1alpha/apps/${orgSlug}/${appSlug}/${version}/runs`,
       {
         method: "POST",
         headers: {

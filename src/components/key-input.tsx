@@ -1,22 +1,26 @@
-import { useLocal } from "@/hooks/useLocal";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "./ui/button";
-import { Form, FormField, FormItem, FormControl, FormMessage } from "./ui/form";
-import { Input } from "./ui/input";
-import { RefreshCcw } from "lucide-react";
-import { useState, useEffect } from "react";
 import {
   AppWithVersions,
   fetchAppVersions,
   fetchWordApps,
 } from "@/actions/actions";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { RefreshCcw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "./ui/button";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
+import { Input } from "./ui/input";
 
-export function KeyInput() {
+interface KeyInputProps {
+  apiKey: string;
+  updateApiKey: (newApiKey: string) => void;
+  updateApps: (newApps: AppWithVersions[]) => void;
+}
+
+export function KeyInput({ apiKey, updateApiKey, updateApps }: KeyInputProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { apiKey, updateApps } = useLocal();
 
   const formSchema = z.object({
     apiKey: z.string(),
@@ -39,6 +43,7 @@ export function KeyInput() {
   async function onSubmit(data: FormData) {
     setIsLoading(true);
     setError(null);
+    updateApiKey(data.apiKey);
     try {
       const fetchedApps = await fetchWordApps(data.apiKey);
       const appsWithVersions: AppWithVersions[] = [];

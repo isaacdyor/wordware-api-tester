@@ -1,5 +1,5 @@
 import { AppWithVersions } from "@/actions/actions";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export const useLocal = () => {
   const [apps, setApps] = useState<AppWithVersions[]>([]);
@@ -16,16 +16,15 @@ export const useLocal = () => {
     }
   }, []);
 
-  const updateApps = (newApps: AppWithVersions[]) => {
+  const updateApps = useCallback((newApps: AppWithVersions[]) => {
     setApps(newApps);
     localStorage.setItem("apps", JSON.stringify(newApps));
-    console.log("Updated apps", newApps);
-  };
+  }, []);
 
-  const updateApiKey = (newApiKey: string) => {
+  const updateApiKey = useCallback((newApiKey: string) => {
     setApiKey(newApiKey);
     localStorage.setItem("apiKey", newApiKey);
-  };
+  }, []);
 
   return { apps, updateApps, apiKey, updateApiKey };
 };

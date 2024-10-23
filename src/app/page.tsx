@@ -1,20 +1,35 @@
 "use client";
 
+import { AppWithVersions } from "@/actions/actions";
 import { KeyInput } from "@/components/key-input";
 import { WordApp } from "@/components/word-app";
 import { useLocal } from "@/hooks/useLocal";
 import { useState } from "react";
 
 export default function Home() {
-  const { apps } = useLocal();
+  const { apps, updateApps, apiKey, updateApiKey } = useLocal();
   const [openedApp, setOpenedApp] = useState<string | null>(null);
 
-  console.log(apps[0]);
+  const updateApp = (app: AppWithVersions) => {
+    const updatedApps = apps.map((currentApp) =>
+      currentApp.appSlug === app.appSlug
+        ? {
+            ...currentApp,
+            selectedVersion: app.selectedVersion,
+          }
+        : currentApp
+    );
+    updateApps(updatedApps);
+  };
 
   return (
     <div className="flex flex-col items-center min-h-screen p-4">
       <div className="w-full max-w-2xl space-y-4">
-        <KeyInput />
+        <KeyInput
+          apiKey={apiKey}
+          updateApiKey={updateApiKey}
+          updateApps={updateApps}
+        />
 
         {apps.length > 0 && (
           <div className="space-y-4">
@@ -30,6 +45,8 @@ export default function Home() {
                     toggleOpen={() =>
                       setOpenedApp(openedApp === key ? null : key)
                     }
+                    apiKey={apiKey}
+                    updateApp={updateApp}
                   />
                 );
               })}

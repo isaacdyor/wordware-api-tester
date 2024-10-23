@@ -21,14 +21,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Textarea } from "@/components/ui/textarea";
-import { useLocal } from "@/hooks/useLocal";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, ChevronUp, Info, Play } from "lucide-react";
 import { useState } from "react";
@@ -39,19 +39,18 @@ interface WordAppProps {
   app: AppWithVersions;
   isOpened: boolean;
   toggleOpen: () => void;
+  apiKey: string;
+  updateApp: (newApp: AppWithVersions) => void;
 }
 
 export function WordApp({
-  app: initialApp,
+  app,
   isOpened,
   toggleOpen,
+  apiKey,
+  updateApp,
 }: WordAppProps) {
   const [runOutput, setRunOutput] = useState<RunStatus | null>(null);
-
-  const { apps, updateApps, apiKey } = useLocal();
-
-  // Find the current app from the apps state
-  const app = apps.find((a) => a.appSlug === initialApp.appSlug) || initialApp;
 
   const appKey = `${app.orgSlug}/${app.appSlug}`;
 
@@ -66,15 +65,21 @@ export function WordApp({
     const schemaFields = currentVersion.inputs.reduce((acc, input) => {
       acc[input.name] = z.string().optional();
       return acc;
-    }, {} as Record<string, z.ZodType<any>>);
+    }, {} as Record<string, z.ZodString | z.ZodOptional<z.ZodString>>);
 
     return z.object(schemaFields);
   };
 
   const form = useForm<z.infer<ReturnType<typeof createFormSchema>>>({
     resolver: zodResolver(createFormSchema()),
-    defaultValues: {},
+    defaultValues: currentVersion?.inputs.reduce((acc, input) => {
+      acc[input.name] = "";
+      return acc;
+    }, {} as Record<string, null>),
   });
+
+  // Add this type assertion
+  type FormSchema = z.infer<ReturnType<typeof createFormSchema>>;
 
   const handleStartRun = async (
     values: z.infer<ReturnType<typeof createFormSchema>>
@@ -85,7 +90,7 @@ export function WordApp({
 
       const runId = await startRun(
         apiKey,
-        currentVersion,
+        currentVersion.version,
         values,
         app.orgSlug,
         app.appSlug
@@ -116,18 +121,6 @@ export function WordApp({
         errors: [{ message: "Failed to fetch run status" }],
       });
     }
-  };
-
-  const handleVersionChange = (version: string) => {
-    const updatedApps = apps.map((currentApp) =>
-      currentApp.appSlug === app.appSlug
-        ? {
-            ...currentApp,
-            selectedVersion: version,
-          }
-        : currentApp
-    );
-    updateApps(updatedApps);
   };
 
   return (
@@ -182,7 +175,9 @@ export function WordApp({
               <Label htmlFor={`${appKey}-version`}>Version</Label>
               <Select
                 value={app.selectedVersion}
-                onValueChange={handleVersionChange}
+                onValueChange={(version) =>
+                  updateApp({ ...app, selectedVersion: version })
+                }
               >
                 <SelectTrigger id={`${appKey}-version`}>
                   <SelectValue placeholder="Select version" />
@@ -208,7 +203,7 @@ export function WordApp({
                 <FormField
                   key={input.name}
                   control={form.control}
-                  name={input.name}
+                  name={input.name as keyof FormSchema}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{input.name}</FormLabel>

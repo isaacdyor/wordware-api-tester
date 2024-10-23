@@ -8,21 +8,12 @@ import { Label } from "@/components/ui/label";
 import { WordApp } from "@/components/word-app";
 import { useLocal } from "@/hooks/useLocal";
 import { RefreshCcw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { apps, updateApps, apiKey, updateApiKey } = useLocal();
-
-  useEffect(() => {
-    const storedApiKey = localStorage.getItem("apiKey");
-    if (storedApiKey) updateApiKey(storedApiKey);
-  }, [updateApiKey]);
-
-  useEffect(() => {
-    if (apiKey) localStorage.setItem("apiKey", apiKey);
-  }, [apiKey]);
 
   const handleRefresh = async () => {
     setIsLoading(true);

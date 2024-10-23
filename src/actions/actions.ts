@@ -45,7 +45,6 @@ export type AppWithVersions = App & {
 };
 
 export async function fetchWordApps(apiKey: string): Promise<App[]> {
-  console.log("Fetching apps", apiKey);
   try {
     const response = await fetch("https://api.wordware.ai/v1alpha/apps/", {
       headers: {

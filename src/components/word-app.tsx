@@ -3,6 +3,15 @@
 import type { AppWithVersions, RunStatus } from "@/actions/actions";
 import { pollRun, startRun } from "@/actions/actions";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,10 +21,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import { useLocal } from "@/hooks/useLocal";
-import { ChevronDown, ChevronUp, Play } from "lucide-react";
-import { useState, useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ChevronDown, ChevronUp, Info, Play } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 interface WordAppProps {
   app: AppWithVersions;
@@ -23,37 +41,52 @@ interface WordAppProps {
   toggleOpen: () => void;
 }
 
-export function WordApp({ app, isOpened, toggleOpen }: WordAppProps) {
-  const [appInputs, setAppInputs] = useState<Record<string, string>>({});
+export function WordApp({
+  app: initialApp,
+  isOpened,
+  toggleOpen,
+}: WordAppProps) {
   const [runOutput, setRunOutput] = useState<RunStatus | null>(null);
-  const [selectedVersion, setSelectedVersion] = useState(app.selectedVersion);
+
   const { apps, updateApps, apiKey } = useLocal();
+
+  // Find the current app from the apps state
+  const app = apps.find((a) => a.appSlug === initialApp.appSlug) || initialApp;
 
   const appKey = `${app.orgSlug}/${app.appSlug}`;
 
-  useEffect(() => {
-    setSelectedVersion(app.selectedVersion);
-  }, [app.selectedVersion]);
+  const currentVersion = app.versions.find(
+    (v) => v.version === app.selectedVersion
+  );
 
-  const handleInputChange = (inputName: string, value: string) => {
-    setAppInputs((prev) => ({
-      ...prev,
-      [inputName]: value,
-    }));
+  // Create a dynamic schema based on the current version's inputs
+  const createFormSchema = () => {
+    if (!currentVersion) return z.object({});
+
+    const schemaFields = currentVersion.inputs.reduce((acc, input) => {
+      acc[input.name] = z.string().optional();
+      return acc;
+    }, {} as Record<string, z.ZodType<any>>);
+
+    return z.object(schemaFields);
   };
 
-  const handleStartRun = async () => {
+  const form = useForm<z.infer<ReturnType<typeof createFormSchema>>>({
+    resolver: zodResolver(createFormSchema()),
+    defaultValues: {},
+  });
+
+  const handleStartRun = async (
+    values: z.infer<ReturnType<typeof createFormSchema>>
+  ) => {
     try {
       setRunOutput({ status: "RUNNING" });
-      const version = app.versions.find(
-        (v) => v.version === app.selectedVersion
-      );
-      if (!version) throw new Error("Selected version not found");
+      if (!currentVersion) throw new Error("Selected version not found");
 
       const runId = await startRun(
         apiKey,
-        version,
-        appInputs,
+        currentVersion,
+        values,
         app.orgSlug,
         app.appSlug
       );
@@ -86,7 +119,6 @@ export function WordApp({ app, isOpened, toggleOpen }: WordAppProps) {
   };
 
   const handleVersionChange = (version: string) => {
-    setSelectedVersion(version);
     const updatedApps = apps.map((currentApp) =>
       currentApp.appSlug === app.appSlug
         ? {
@@ -98,19 +130,46 @@ export function WordApp({ app, isOpened, toggleOpen }: WordAppProps) {
     updateApps(updatedApps);
   };
 
-  const currentVersion = app.versions.find(
-    (v) => v.version === selectedVersion
-  );
-
   return (
     <li className="border rounded-lg overflow-hidden">
       <div
         className="flex justify-between items-center p-4 cursor-pointer bg-muted hover:bg-muted/80"
         onClick={toggleOpen}
       >
-        <h3 className="text-lg font-semibold">
-          {currentVersion?.title || app.appSlug}
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">
+            {currentVersion?.title || app.appSlug}
+          </h3>
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="w-4 h-4" />
+              </TooltipTrigger>
+              <TooltipContent
+                className="max-w-xs border-border"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <p>
+                  <strong>Org Slug:</strong> {app.orgSlug}
+                </p>
+                <p>
+                  <strong>App Slug:</strong> {app.appSlug}
+                </p>
+                <p>
+                  <strong>Created:</strong>{" "}
+                  {app.created ? new Date(app.created).toLocaleString() : "N/A"}
+                </p>
+                <p>
+                  <strong>Updated:</strong>{" "}
+                  {app.lastUpdated
+                    ? new Date(app.lastUpdated).toLocaleString()
+                    : "N/A"}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
         {isOpened ? <ChevronUp /> : <ChevronDown />}
       </div>
       {isOpened && currentVersion && (
@@ -119,20 +178,10 @@ export function WordApp({ app, isOpened, toggleOpen }: WordAppProps) {
             {currentVersion.description}
           </p>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <p>
-              <strong>Org Slug:</strong> {app.orgSlug}
-            </p>
-            <p>
-              <strong>App Slug:</strong> {app.appSlug}
-            </p>
-            <p>
-              <strong>Created:</strong>{" "}
-              {new Date(currentVersion.created).toLocaleString()}
-            </p>
             <div className="col-span-2">
               <Label htmlFor={`${appKey}-version`}>Version</Label>
               <Select
-                value={selectedVersion}
+                value={app.selectedVersion}
                 onValueChange={handleVersionChange}
               >
                 <SelectTrigger id={`${appKey}-version`}>
@@ -150,42 +199,44 @@ export function WordApp({ app, isOpened, toggleOpen }: WordAppProps) {
           </div>
 
           <h4 className="text-md font-semibold mt-4 mb-2">Inputs:</h4>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleStartRun();
-            }}
-            className="space-y-2"
-          >
-            {currentVersion.inputs.map((input, index) => (
-              <div key={index}>
-                <Label htmlFor={`${appKey}-${input.name}`}>{input.name}</Label>
-                {input.type === "longtext" ? (
-                  <Textarea
-                    id={`${appKey}-${input.name}`}
-                    value={appInputs[input.name] || ""}
-                    onChange={(e) =>
-                      handleInputChange(input.name, e.target.value)
-                    }
-                    placeholder={input.description || ""}
-                  />
-                ) : (
-                  <Input
-                    id={`${appKey}-${input.name}`}
-                    type="text"
-                    value={appInputs[input.name] || ""}
-                    onChange={(e) =>
-                      handleInputChange(input.name, e.target.value)
-                    }
-                    placeholder={input.description || ""}
-                  />
-                )}
-              </div>
-            ))}
-            <Button type="submit" disabled={runOutput?.status === "RUNNING"}>
-              <Play className="mr-2 h-4 w-4" /> Run
-            </Button>
-          </form>
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(handleStartRun)}
+              className="space-y-4"
+            >
+              {currentVersion.inputs.map((input) => (
+                <FormField
+                  key={input.name}
+                  control={form.control}
+                  name={input.name}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{input.name}</FormLabel>
+                      <FormControl>
+                        {input.type === "longtext" ? (
+                          <Textarea
+                            placeholder={input.description || ""}
+                            {...field}
+                          />
+                        ) : (
+                          <Input
+                            type="text"
+                            placeholder={input.description || ""}
+                            {...field}
+                          />
+                        )}
+                      </FormControl>
+                      <FormDescription>{input.description}</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ))}
+              <Button type="submit" disabled={runOutput?.status === "RUNNING"}>
+                <Play className="mr-2 h-4 w-4" /> Run
+              </Button>
+            </form>
+          </Form>
 
           {runOutput && (
             <div className="mt-4">

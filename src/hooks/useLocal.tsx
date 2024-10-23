@@ -17,9 +17,9 @@ export const useLocal = () => {
   }, []);
 
   const updateApps = (newApps: AppWithVersions[]) => {
-    console.log("Updating apps", newApps);
     setApps(newApps);
     localStorage.setItem("apps", JSON.stringify(newApps));
+    console.log("Updated apps", newApps);
   };
 
   const updateApiKey = (newApiKey: string) => {

@@ -1,9 +1,11 @@
-import { AppWithVersions } from "@/actions/actions";
+import { AppWithVersions } from "@/types/types";
+import { Run } from "@/types/types";
 import { useState, useEffect, useCallback } from "react";
 
 export const useLocal = () => {
   const [apps, setApps] = useState<AppWithVersions[]>([]);
   const [apiKey, setApiKey] = useState<string>("");
+  const [runs, setRuns] = useState<Run[]>([]);
 
   useEffect(() => {
     const storedApps = localStorage.getItem("apps");

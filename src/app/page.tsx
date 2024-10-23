@@ -1,6 +1,6 @@
 "use client";
 
-import { AppWithVersions } from "@/actions/actions";
+import { AppWithVersions } from "@/types/types";
 import { KeyInput } from "@/components/key-input";
 import { WordApp } from "@/components/word-app";
 import { useLocal } from "@/hooks/useLocal";

@@ -1,48 +1,15 @@
 "use server";
 
+import {
+  App,
+  AppSchema,
+  AppVersion,
+  AppVersionSchema,
+  Run,
+  RunResponseSchema,
+  RunSchema,
+} from "@/types/types";
 import { z } from "zod";
-
-const AppSchema = z.object({
-  orgSlug: z.string(),
-  appSlug: z.string(),
-  visibility: z.string(),
-  latestVersion: z.string().optional(),
-  created: z.string(),
-  lastUpdated: z.string(),
-});
-
-const InputSchema = z.object({
-  name: z.string(),
-  type: z.enum(["text", "longtext", "image", "audio"]),
-  description: z.string().optional(),
-});
-
-const AppVersionSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  version: z.string(),
-  inputs: z.array(InputSchema),
-  created: z.string(),
-  examples: z.record(z.unknown()).optional(),
-});
-
-const RunResponseSchema = z.object({
-  runId: z.string(),
-});
-
-const RunStatusSchema = z.object({
-  status: z.enum(["RUNNING", "COMPLETE", "ERROR"]),
-  outputs: z.record(z.unknown()).optional(),
-  errors: z.array(z.object({ message: z.string() })).optional(),
-});
-
-export type App = z.infer<typeof AppSchema>;
-export type AppVersion = z.infer<typeof AppVersionSchema>;
-export type RunStatus = z.infer<typeof RunStatusSchema>;
-export type AppWithVersions = App & {
-  versions: AppVersion[];
-  selectedVersion: string;
-};
 
 export async function fetchWordApps(apiKey: string): Promise<App[]> {
   try {
@@ -122,10 +89,7 @@ export async function startRun(
   }
 }
 
-export async function pollRun(
-  apiKey: string,
-  runId: string
-): Promise<RunStatus> {
+export async function pollRun(apiKey: string, runId: string): Promise<Run> {
   try {
     const response = await fetch(
       `https://api.wordware.ai/v1alpha/runs/${runId}`,
@@ -137,7 +101,7 @@ export async function pollRun(
     if (!response.ok) throw new Error("Failed to fetch run status");
 
     const data = await response.json();
-    return RunStatusSchema.parse(data);
+    return RunSchema.parse(data);
   } catch (error) {
     console.error("Error polling run:", error);
     throw error;

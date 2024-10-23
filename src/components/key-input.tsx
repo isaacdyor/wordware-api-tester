@@ -1,8 +1,4 @@
-import {
-  AppWithVersions,
-  fetchAppVersions,
-  fetchWordApps,
-} from "@/actions/actions";
+import { fetchAppVersions, fetchWordApps } from "@/actions/actions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -11,6 +7,7 @@ import { z } from "zod";
 import { Button } from "./ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
+import { AppWithVersions } from "@/types/types";
 
 interface KeyInputProps {
   apiKey: string;

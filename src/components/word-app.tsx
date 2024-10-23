@@ -1,6 +1,6 @@
 "use client";
 
-import type { AppWithVersions, RunStatus } from "@/actions/actions";
+import type { AppWithVersions, Run } from "@/types/types";
 import { pollRun, startRun } from "@/actions/actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +35,7 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Output } from "./output";
+import { RunHistory } from "./history";
 
 interface WordAppProps {
   app: AppWithVersions;
@@ -51,7 +52,7 @@ export function WordApp({
   apiKey,
   updateApp,
 }: WordAppProps) {
-  const [runOutput, setRunOutput] = useState<RunStatus | null>(null);
+  const [runOutput, setRunOutput] = useState<Run | null>(null);
   const [isClosing, setIsClosing] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -228,7 +229,11 @@ export function WordApp({
               </div>
             </div>
 
-            <h4 className="text-md font-semibold mt-4 mb-2">Inputs:</h4>
+            <div className="flex items-center gap-1">
+              <RunHistory />
+              <h4 className="text-md font-semibold">Inputs:</h4>
+            </div>
+
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(handleStartRun)}

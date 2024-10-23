@@ -7,7 +7,7 @@ import { useLocal } from "@/hooks/useLocal";
 import { useState } from "react";
 
 export default function Home() {
-  const { apps, updateApps, apiKey, updateApiKey } = useLocal();
+  const { apps, updateApps, updateApiKey } = useLocal();
   const [openedApp, setOpenedApp] = useState<string | null>(null);
 
   const updateApp = (app: AppWithVersions) => {
@@ -21,7 +21,6 @@ export default function Home() {
     <div className="flex flex-col items-center min-h-screen p-4">
       <div className="w-full max-w-2xl space-y-4">
         <KeyInput
-          apiKey={apiKey}
           updateApiKey={updateApiKey}
           updateApps={updateApps}
           apps={apps}
@@ -41,7 +40,6 @@ export default function Home() {
                     toggleOpen={() =>
                       setOpenedApp(openedApp === key ? null : key)
                     }
-                    apiKey={apiKey}
                     updateApp={updateApp}
                   />
                 );

@@ -8,20 +8,16 @@ import { Button } from "./ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
 import { AppWithVersions } from "@/types/types";
+import { useLocal } from "@/hooks/useLocal";
 
 interface KeyInputProps {
-  apiKey: string;
   updateApiKey: (newApiKey: string) => void;
   updateApps: (newApps: AppWithVersions[]) => void;
   apps: AppWithVersions[];
 }
 
-export function KeyInput({
-  apiKey,
-  updateApiKey,
-  updateApps,
-  apps,
-}: KeyInputProps) {
+export function KeyInput({ updateApiKey, updateApps, apps }: KeyInputProps) {
+  const { apiKey } = useLocal();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,6 +34,7 @@ export function KeyInput({
     },
   });
 
+  // set the default value once loaded from local storage
   useEffect(() => {
     form.reset({ apiKey });
   }, [apiKey, form]);

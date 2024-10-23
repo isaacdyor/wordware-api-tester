@@ -20,7 +20,7 @@ export function Output({
   return (
     <Card className="w-full">
       <CardContent className="pt-6 pr-2 relative">
-        <ScrollArea className="h-[500px] w-full pr-2">
+        <ScrollArea className="max-h-[500px] w-full pr-2">
           {jsonView ? (
             <pre className="text-muted-foreground whitespace-pre-wrap break-words text-sm">
               {JSON.stringify(runOutputs, null, 2)}

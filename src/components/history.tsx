@@ -101,7 +101,7 @@ export function RunHistory() {
           </DropdownMenuContent>
         </DropdownMenu>
         <TooltipContent>
-          <p>Run history</p>
+          <p>View history</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

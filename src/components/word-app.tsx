@@ -87,9 +87,7 @@ export function WordApp({
   // Add this type assertion
   type FormSchema = z.infer<ReturnType<typeof createFormSchema>>;
 
-  const handleStartRun = async (
-    values: z.infer<ReturnType<typeof createFormSchema>>
-  ) => {
+  const handleStartRun = async (values: FormSchema) => {
     try {
       setRunOutput({ status: "RUNNING" });
       if (!currentVersion) throw new Error("Selected version not found");
@@ -101,7 +99,7 @@ export function WordApp({
         app.orgSlug,
         app.appSlug
       );
-      pollRunStatus(runId);
+      pollRunStatus(runId, values);
     } catch (error) {
       console.error("Error running app:", error);
       setRunOutput({
@@ -111,14 +109,31 @@ export function WordApp({
     }
   };
 
-  const pollRunStatus = async (runId: string) => {
+  const pollRunStatus = async (runId: string, values: FormSchema) => {
     try {
       const runStatus = await pollRun(apiKey, runId);
       setRunOutput(runStatus);
+      if (runStatus.status === "COMPLETE") {
+        const inputs = Object.entries(values).map(([name, value]) => ({
+          name,
+          value: String(value),
+        }));
+        const run = { ...runStatus, inputs };
 
+        const updatedApp = {
+          ...app,
+          versions: app.versions.map((v) =>
+            v.version === currentVersion?.version
+              ? { ...v, runs: [...v.runs, run] }
+              : v
+          ),
+        };
+
+        updateApp(updatedApp);
+      }
       if (runStatus.status === "RUNNING") {
         // Continue polling after a short delay
-        setTimeout(() => pollRunStatus(runId), 1000);
+        setTimeout(() => pollRunStatus(runId, values), 1000);
       }
     } catch (error) {
       console.error("Error polling run:", error);

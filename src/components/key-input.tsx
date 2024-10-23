@@ -13,9 +13,15 @@ interface KeyInputProps {
   apiKey: string;
   updateApiKey: (newApiKey: string) => void;
   updateApps: (newApps: AppWithVersions[]) => void;
+  apps: AppWithVersions[];
 }
 
-export function KeyInput({ apiKey, updateApiKey, updateApps }: KeyInputProps) {
+export function KeyInput({
+  apiKey,
+  updateApiKey,
+  updateApps,
+  apps,
+}: KeyInputProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,9 +60,26 @@ export function KeyInput({ apiKey, updateApiKey, updateApps }: KeyInputProps) {
 
           const versionsSorted = versions.reverse();
 
+          const versionWithRuns = versionsSorted.map((version) => {
+            const existingVersion = apps
+              .find((a) => a.appSlug === app.appSlug)
+              ?.versions.find((v) => v.version === version.version);
+            if (existingVersion) {
+              return {
+                ...version,
+                runs: existingVersion.runs,
+              };
+            } else {
+              return {
+                ...version,
+                runs: [],
+              };
+            }
+          });
+
           appsWithVersions.push({
             ...app,
-            versions: versionsSorted,
+            versions: versionWithRuns,
             selectedVersion: versionsSorted[0]?.version || "",
           });
         } catch (versionError) {

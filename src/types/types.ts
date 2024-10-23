@@ -44,10 +44,10 @@ interface Input {
 }
 
 export type VersionWithRuns = AppVersion & {
-  runs: Run[];
-  inputs: Input[];
+  runs: (Run & { inputs: Input[] })[];
 };
+
 export type AppWithVersions = App & {
-  versions: AppVersion[];
+  versions: VersionWithRuns[];
   selectedVersion: string;
 };

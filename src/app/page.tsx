@@ -12,12 +12,7 @@ export default function Home() {
 
   const updateApp = (app: AppWithVersions) => {
     const updatedApps = apps.map((currentApp) =>
-      currentApp.appSlug === app.appSlug
-        ? {
-            ...currentApp,
-            selectedVersion: app.selectedVersion,
-          }
-        : currentApp
+      currentApp.appSlug === app.appSlug ? app : currentApp
     );
     updateApps(updatedApps);
   };
@@ -29,6 +24,7 @@ export default function Home() {
           apiKey={apiKey}
           updateApiKey={updateApiKey}
           updateApps={updateApps}
+          apps={apps}
         />
 
         {apps.length > 0 && (

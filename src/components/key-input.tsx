@@ -4,7 +4,7 @@ import {
   fetchWordApps,
 } from "@/actions/actions";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { RefreshCcw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -35,7 +35,6 @@ export function KeyInput({ apiKey, updateApiKey, updateApps }: KeyInputProps) {
     },
   });
 
-  // Update form value when apiKey changes
   useEffect(() => {
     form.reset({ apiKey });
   }, [apiKey, form]);
@@ -108,7 +107,7 @@ export function KeyInput({ apiKey, updateApiKey, updateApps }: KeyInputProps) {
                     size="icon"
                     className="rounded-l-none px-2"
                   >
-                    <RefreshCcw className={isLoading ? "animate-spin" : ""} />
+                    <RefreshCw className={isLoading ? "animate-spin" : ""} />
                   </Button>
                 </div>
               </FormControl>

@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronDown, ChevronUp, Info, Play } from "lucide-react";
+import { ChevronDown, Info, Loader2, Play } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -58,14 +58,16 @@ export function WordApp({
     (v) => v.version === app.selectedVersion
   );
 
-  // Create a dynamic schema based on the current version's inputs
+  // Update the createFormSchema function
   const createFormSchema = () => {
     if (!currentVersion) return z.object({});
 
     const schemaFields = currentVersion.inputs.reduce((acc, input) => {
-      acc[input.name] = z.string().optional();
+      acc[input.name] = z
+        .string()
+        .min(1, { message: "This field is required" });
       return acc;
-    }, {} as Record<string, z.ZodString | z.ZodOptional<z.ZodString>>);
+    }, {} as Record<string, z.ZodString>);
 
     return z.object(schemaFields);
   };
@@ -75,7 +77,7 @@ export function WordApp({
     defaultValues: currentVersion?.inputs.reduce((acc, input) => {
       acc[input.name] = "";
       return acc;
-    }, {} as Record<string, null>),
+    }, {} as Record<string, string>),
   });
 
   // Add this type assertion
@@ -163,105 +165,120 @@ export function WordApp({
           </TooltipProvider>
         </div>
 
-        {isOpened ? <ChevronUp /> : <ChevronDown />}
+        <ChevronDown
+          className={`transform transition-transform duration-300 ease-in-out ${
+            isOpened ? "rotate-180" : ""
+          }`}
+        />
       </div>
-      {isOpened && currentVersion && (
-        <div className="p-4 space-y-4">
-          <p className="text-sm text-muted-foreground">
-            {currentVersion.description}
-          </p>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="col-span-2">
-              <Label htmlFor={`${appKey}-version`}>Version</Label>
-              <Select
-                value={app.selectedVersion}
-                onValueChange={(version) =>
-                  updateApp({ ...app, selectedVersion: version })
-                }
-              >
-                <SelectTrigger id={`${appKey}-version`}>
-                  <SelectValue placeholder="Select version" />
-                </SelectTrigger>
-                <SelectContent>
-                  {app.versions.map((version) => (
-                    <SelectItem key={version.version} value={version.version}>
-                      {version.version}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <h4 className="text-md font-semibold mt-4 mb-2">Inputs:</h4>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(handleStartRun)}
-              className="space-y-4"
-            >
-              {currentVersion.inputs.map((input) => (
-                <FormField
-                  key={input.name}
-                  control={form.control}
-                  name={input.name as keyof FormSchema}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{input.name}</FormLabel>
-                      <FormControl>
-                        {input.type === "longtext" ? (
-                          <Textarea
-                            placeholder={input.description || ""}
-                            {...field}
-                          />
-                        ) : (
-                          <Input
-                            type="text"
-                            placeholder={input.description || ""}
-                            {...field}
-                          />
-                        )}
-                      </FormControl>
-                      <FormDescription>{input.description}</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ))}
-              <Button type="submit" disabled={runOutput?.status === "RUNNING"}>
-                <Play className="mr-2 h-4 w-4" /> Run
-              </Button>
-            </form>
-          </Form>
-
-          {runOutput && (
-            <div className="mt-4">
-              <h4 className="text-md font-semibold mb-2">
-                Run Status: {runOutput.status}
-              </h4>
-              {runOutput.status === "COMPLETE" && runOutput.outputs && (
-                <div>
-                  <h5 className="font-semibold">Outputs:</h5>
-                  <pre className="bg-muted p-2 rounded mt-2 overflow-x-auto">
-                    {JSON.stringify(runOutput.outputs, null, 2)}
-                  </pre>
-                </div>
-              )}
-              {runOutput.status === "ERROR" && runOutput.errors && (
-                <div>
-                  <h5 className="font-semibold text-destructive">Errors:</h5>
-                  <ul className="list-disc pl-5 mt-2">
-                    {runOutput.errors.map((error, index) => (
-                      <li key={index} className="text-destructive">
-                        {error.message}
-                      </li>
+      <div
+        className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${
+          isOpened ? "max-h-[2000px]" : "max-h-0"
+        }`}
+      >
+        {currentVersion && (
+          <div className="p-4 space-y-4">
+            <p className="text-sm text-muted-foreground">
+              {currentVersion.description}
+            </p>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="col-span-2">
+                <Label htmlFor={`${appKey}-version`}>Version</Label>
+                <Select
+                  value={app.selectedVersion}
+                  onValueChange={(version) =>
+                    updateApp({ ...app, selectedVersion: version })
+                  }
+                >
+                  <SelectTrigger id={`${appKey}-version`}>
+                    <SelectValue placeholder="Select version" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {app.versions.map((version) => (
+                      <SelectItem key={version.version} value={version.version}>
+                        {version.version}
+                      </SelectItem>
                     ))}
-                  </ul>
-                </div>
-              )}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          )}
-        </div>
-      )}
+
+            <h4 className="text-md font-semibold mt-4 mb-2">Inputs:</h4>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(handleStartRun)}
+                className="space-y-4"
+              >
+                {currentVersion.inputs.map((input) => (
+                  <FormField
+                    key={input.name}
+                    control={form.control}
+                    name={input.name as keyof FormSchema}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{input.name}</FormLabel>
+                        <FormControl>
+                          {input.type === "longtext" ? (
+                            <Textarea
+                              placeholder={input.description || ""}
+                              {...field}
+                            />
+                          ) : (
+                            <Input
+                              type="text"
+                              placeholder={input.description || ""}
+                              {...field}
+                            />
+                          )}
+                        </FormControl>
+                        <FormDescription>{input.description}</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ))}
+                <Button
+                  type="submit"
+                  disabled={runOutput?.status === "RUNNING"}
+                >
+                  {runOutput?.status === "RUNNING" ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    <Play className="h-4 w-4" />
+                  )}
+                  {runOutput?.status === "RUNNING" ? "Running..." : "Run"}
+                </Button>
+              </form>
+            </Form>
+
+            {runOutput && (
+              <div className="mt-4">
+                {runOutput.status === "COMPLETE" && runOutput.outputs && (
+                  <div>
+                    <h5 className="font-semibold">Outputs:</h5>
+                    <pre className="bg-muted p-2 rounded mt-2 overflow-x-auto">
+                      {JSON.stringify(runOutput.outputs, null, 2)}
+                    </pre>
+                  </div>
+                )}
+                {runOutput.status === "ERROR" && runOutput.errors && (
+                  <div>
+                    <h5 className="font-semibold text-destructive">Errors:</h5>
+                    <ul className="list-disc pl-5 mt-2">
+                      {runOutput.errors.map((error, index) => (
+                        <li key={index} className="text-destructive">
+                          {error.message}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </li>
   );
 }

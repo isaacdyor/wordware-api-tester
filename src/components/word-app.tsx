@@ -259,7 +259,8 @@ export function WordApp({
             <div className="flex items-center gap-1">
               <RunHistory
                 currentVersion={currentVersion}
-                setInputValues={setInputValues} // Pass the new function here
+                setInputValues={setInputValues}
+                setRunOutput={setRunOutput}
               />
               <h4 className="text-md font-semibold">Inputs:</h4>
             </div>

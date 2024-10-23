@@ -1,76 +1,81 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import type { AppWithVersions } from "@/actions/actions";
+import { fetchAppVersions, fetchWordApps } from "@/actions/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { RefreshCcw, Play, ChevronDown, ChevronUp } from "lucide-react";
-import {
-  fetchWordApps,
-  fetchAppVersion,
-  startRun,
-  pollRun,
-} from "@/actions/actions";
-import type { AppVersion, RunStatus } from "@/actions/actions";
-
-type RunOutput = RunStatus & { status: RunStatus["status"] | "IDLE" };
+import { WordApp } from "@/components/word-app";
+import { useLocal } from "@/hooks/useLocal";
+import { RefreshCcw } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
-  const [apiKey, setApiKey] = useState("");
-  const [appVersions, setAppVersions] = useState<AppVersion[]>([]);
-  const [appInputs, setAppInputs] = useState<
-    Record<string, Record<string, string>>
-  >({});
-  const [runOutputs, setRunOutputs] = useState<Record<string, RunOutput>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [expandedApp, setExpandedApp] = useState<string | null>(null);
+  const { apps, updateApps, apiKey, updateApiKey } = useLocal();
 
   useEffect(() => {
-    // Load data from local storage on component mount
     const storedApiKey = localStorage.getItem("apiKey");
-    const storedAppVersions = localStorage.getItem("appVersions");
-
-    if (storedApiKey) setApiKey(storedApiKey);
-    if (storedAppVersions) {
-      const parsedAppVersions = JSON.parse(storedAppVersions);
-      setAppVersions(parsedAppVersions);
-    }
-  }, []);
+    if (storedApiKey) updateApiKey(storedApiKey);
+  }, [updateApiKey]);
 
   useEffect(() => {
-    // Save data to local storage whenever it changes
     if (apiKey) localStorage.setItem("apiKey", apiKey);
-    if (appVersions.length > 0)
-      localStorage.setItem("appVersions", JSON.stringify(appVersions));
-  }, [apiKey, appVersions]);
+  }, [apiKey]);
 
   const handleRefresh = async () => {
     setIsLoading(true);
     setError(null);
     try {
       const fetchedApps = await fetchWordApps(apiKey);
-      const versions: AppVersion[] = [];
+      const appsWithVersions: AppWithVersions[] = [];
 
       for (const app of fetchedApps) {
         try {
-          const version = await fetchAppVersion(
+          const versions = await fetchAppVersions(
             apiKey,
             app.orgSlug,
-            app.appSlug,
-            app.latestVersion || "1.0"
+            app.appSlug
           );
-          versions.push(version);
+
+          // Sort versions in descending order
+          versions.sort((a, b) => {
+            const versionA = a.version.split(".").map(Number);
+            const versionB = b.version.split(".").map(Number);
+            for (
+              let i = 0;
+              i < Math.max(versionA.length, versionB.length);
+              i++
+            ) {
+              const numA = versionA[i] || 0;
+              const numB = versionB[i] || 0;
+              if (numA > numB) return -1;
+              if (numA < numB) return 1;
+            }
+            return 0;
+          });
+
+          appsWithVersions.push({
+            ...app,
+            versions,
+            selectedVersion: versions[0]?.version || "",
+          });
         } catch (versionError) {
           console.error(
-            `Error fetching version for ${app.appSlug}:`,
+            `Error fetching versions for ${app.appSlug}:`,
             versionError
           );
         }
       }
 
-      setAppVersions(versions);
+      // Sort apps by lastUpdated in descending order
+      appsWithVersions.sort(
+        (a, b) =>
+          new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
+      );
+
+      updateApps(appsWithVersions);
     } catch (error) {
       console.error("Failed to fetch apps:", error);
       setError(
@@ -79,61 +84,6 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleInputChange = (
-    appKey: string,
-    inputName: string,
-    value: string
-  ) => {
-    setAppInputs((prev) => ({
-      ...prev,
-      [appKey]: {
-        ...prev[appKey],
-        [inputName]: value,
-      },
-    }));
-  };
-
-  const handleStartRun = async (app: AppVersion, appKey: string) => {
-    try {
-      setRunOutputs((prev) => ({ ...prev, [appKey]: { status: "RUNNING" } }));
-      const runId = await startRun(apiKey, app, appInputs[appKey] || {});
-      pollRunStatus(runId, appKey);
-    } catch (error) {
-      console.error("Error starting run:", error);
-      setRunOutputs((prev) => ({
-        ...prev,
-        [appKey]: {
-          status: "ERROR",
-          errors: [{ message: "Failed to start run" }],
-        },
-      }));
-    }
-  };
-
-  const pollRunStatus = async (runId: string, appKey: string) => {
-    try {
-      const runStatus = await pollRun(apiKey, runId);
-      setRunOutputs((prev) => ({ ...prev, [appKey]: runStatus }));
-
-      if (runStatus.status === "RUNNING") {
-        setTimeout(() => pollRunStatus(runId, appKey), 1000);
-      }
-    } catch (error) {
-      console.error("Error polling run:", error);
-      setRunOutputs((prev) => ({
-        ...prev,
-        [appKey]: {
-          status: "ERROR",
-          errors: [{ message: "Failed to fetch run status" }],
-        },
-      }));
-    }
-  };
-
-  const toggleAppExpansion = (appKey: string) => {
-    setExpandedApp((prevExpanded) => (prevExpanded === appKey ? null : appKey));
   };
 
   return (
@@ -145,7 +95,7 @@ export default function Home() {
             <Input
               id="apiKey"
               value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
+              onChange={(e) => updateApiKey(e.target.value)}
               placeholder="Enter your API key"
             />
             <Button size="icon" onClick={handleRefresh} disabled={isLoading}>
@@ -156,146 +106,17 @@ export default function Home() {
 
         {error && <p className="text-destructive">{error}</p>}
 
-        {appVersions.length > 0 && (
+        {apps.length > 0 && (
           <div className="space-y-4">
             <h2 className="text-2xl font-bold">Word Apps:</h2>
             <ul className="space-y-2">
-              {appVersions.map((app) => {
-                const versionKey = `${app.orgSlug}/${app.appSlug}`;
-                const runOutput = runOutputs[versionKey];
-                const isExpanded = expandedApp === versionKey;
-
-                return (
-                  <li
-                    key={versionKey}
-                    className="border rounded-lg overflow-hidden"
-                  >
-                    <div
-                      className="flex justify-between items-center p-4 cursor-pointer bg-muted hover:bg-muted/80"
-                      onClick={() => toggleAppExpansion(versionKey)}
-                    >
-                      <h3 className="text-lg font-semibold">
-                        {app.title || app.appSlug}
-                      </h3>
-                      {isExpanded ? <ChevronUp /> : <ChevronDown />}
-                    </div>
-                    {isExpanded && (
-                      <div className="p-4 space-y-4">
-                        <p className="text-sm text-muted-foreground">
-                          {app.description}
-                        </p>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <p>
-                            <strong>Org Slug:</strong> {app.orgSlug}
-                          </p>
-                          <p>
-                            <strong>App Slug:</strong> {app.appSlug}
-                          </p>
-                          <p>
-                            <strong>Version:</strong> {app.version}
-                          </p>
-                          <p>
-                            <strong>Created:</strong>{" "}
-                            {new Date(app.created).toLocaleString()}
-                          </p>
-                        </div>
-
-                        <h4 className="text-md font-semibold mt-4 mb-2">
-                          Inputs:
-                        </h4>
-                        <form
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                            handleStartRun(app, versionKey);
-                          }}
-                          className="space-y-2"
-                        >
-                          {app.inputs.map((input, index) => (
-                            <div key={index}>
-                              <Label htmlFor={`${versionKey}-${input.name}`}>
-                                {input.name}
-                              </Label>
-                              {input.type === "longtext" ? (
-                                <Textarea
-                                  id={`${versionKey}-${input.name}`}
-                                  value={
-                                    appInputs[versionKey]?.[input.name] || ""
-                                  }
-                                  onChange={(e) =>
-                                    handleInputChange(
-                                      versionKey,
-                                      input.name,
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder={input.description || ""}
-                                />
-                              ) : (
-                                <Input
-                                  id={`${versionKey}-${input.name}`}
-                                  type={input.type === "text" ? "text" : "file"}
-                                  value={
-                                    appInputs[versionKey]?.[input.name] || ""
-                                  }
-                                  onChange={(e) =>
-                                    handleInputChange(
-                                      versionKey,
-                                      input.name,
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder={input.description || ""}
-                                />
-                              )}
-                            </div>
-                          ))}
-                          <Button
-                            type="submit"
-                            disabled={runOutput?.status === "RUNNING"}
-                          >
-                            <Play className="mr-2 h-4 w-4" /> Run
-                          </Button>
-                        </form>
-
-                        {runOutput && (
-                          <div className="mt-4">
-                            <h4 className="text-md font-semibold mb-2">
-                              Run Status: {runOutput.status}
-                            </h4>
-                            {runOutput.status === "COMPLETE" &&
-                              runOutput.outputs && (
-                                <div>
-                                  <h5 className="font-semibold">Outputs:</h5>
-                                  <pre className="bg-muted p-2 rounded mt-2 overflow-x-auto">
-                                    {JSON.stringify(runOutput.outputs, null, 2)}
-                                  </pre>
-                                </div>
-                              )}
-                            {runOutput.status === "ERROR" &&
-                              runOutput.errors && (
-                                <div>
-                                  <h5 className="font-semibold text-destructive">
-                                    Errors:
-                                  </h5>
-                                  <ul className="list-disc pl-5 mt-2">
-                                    {runOutput.errors.map((error, index) => (
-                                      <li
-                                        key={index}
-                                        className="text-destructive"
-                                      >
-                                        {error.message}
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
+              {apps.map((app) => (
+                <WordApp
+                  key={`${app.orgSlug}/${app.appSlug}/${app.selectedVersion}`}
+                  app={app}
+                  apiKey={apiKey}
+                />
+              ))}
             </ul>
           </div>
         )}

@@ -1,3 +1,5 @@
+"use server";
+
 import { z } from "zod";
 
 const AppSchema = z.object({
@@ -16,8 +18,6 @@ const InputSchema = z.object({
 });
 
 const AppVersionSchema = z.object({
-  orgSlug: z.string(),
-  appSlug: z.string(),
   title: z.string(),
   description: z.string(),
   version: z.string(),
@@ -39,6 +39,10 @@ const RunStatusSchema = z.object({
 export type App = z.infer<typeof AppSchema>;
 export type AppVersion = z.infer<typeof AppVersionSchema>;
 export type RunStatus = z.infer<typeof RunStatusSchema>;
+export type AppWithVersions = App & {
+  versions: AppVersion[];
+  selectedVersion: string;
+};
 
 export async function fetchWordApps(apiKey: string): Promise<App[]> {
   try {
@@ -60,15 +64,14 @@ export async function fetchWordApps(apiKey: string): Promise<App[]> {
   }
 }
 
-export async function fetchAppVersion(
+export async function fetchAppVersions(
   apiKey: string,
   orgSlug: string,
-  appSlug: string,
-  version: string
-): Promise<AppVersion> {
+  appSlug: string
+): Promise<AppVersion[]> {
   try {
     const response = await fetch(
-      `https://api.wordware.ai/v1alpha/apps/${orgSlug}/${appSlug}/${version}`,
+      `https://api.wordware.ai/v1alpha/apps/${orgSlug}/${appSlug}/versions`,
       {
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -81,9 +84,9 @@ export async function fetchAppVersion(
     }
 
     const data = await response.json();
-    return AppVersionSchema.parse({ ...data, orgSlug, appSlug });
+    return z.array(AppVersionSchema).parse(data);
   } catch (error) {
-    console.error("Error fetching app version:", error);
+    console.error("Error fetching app versions:", error);
     throw error;
   }
 }
@@ -91,11 +94,13 @@ export async function fetchAppVersion(
 export async function startRun(
   apiKey: string,
   app: AppVersion,
-  inputs: Record<string, string>
+  inputs: Record<string, string>,
+  orgSlug: string,
+  appSlug: string
 ): Promise<string> {
   try {
     const response = await fetch(
-      `https://api.wordware.ai/v1alpha/apps/${app.orgSlug}/${app.appSlug}/${app.version}/runs`,
+      `https://api.wordware.ai/v1alpha/apps/${orgSlug}/${appSlug}/${app.version}/runs`,
       {
         method: "POST",
         headers: {

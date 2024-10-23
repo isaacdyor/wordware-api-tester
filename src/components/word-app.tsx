@@ -245,7 +245,7 @@ export function WordApp({
             </div>
 
             <div className="flex items-center gap-1">
-              <RunHistory />
+              <RunHistory currentVersion={currentVersion} />
               <h4 className="text-md font-semibold">Inputs:</h4>
             </div>
 

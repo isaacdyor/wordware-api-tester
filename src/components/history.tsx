@@ -4,8 +4,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
@@ -13,14 +13,31 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { VersionWithRuns } from "@/types/types";
+import { Input, RunWithInputs, VersionWithRuns } from "@/types/types";
+
 import { History } from "lucide-react";
 
 export function RunHistory({
   currentVersion,
+  setInputValues,
 }: {
   currentVersion: VersionWithRuns;
+  setInputValues: (values: Record<string, string>) => void;
 }) {
+  const onClick = (run: RunWithInputs) => {
+    if (!run.inputs) return;
+
+    const inputValues = run.inputs.reduce(
+      (acc: Record<string, string>, input: Input) => {
+        acc[input.name] = input.value;
+        return acc;
+      },
+      {}
+    );
+
+    setInputValues(inputValues);
+  };
+
   return (
     <TooltipProvider delayDuration={0}>
       <Tooltip>
@@ -36,10 +53,15 @@ export function RunHistory({
               <DropdownMenuSeparator />
               {currentVersion.runs.length > 0 ? (
                 currentVersion.runs.map((run) => (
-                  <DropdownMenuItem key={run.startTime}>
-                    {run.startTime
-                      ? new Date(run.startTime).toLocaleString()
-                      : "N/A"}
+                  <DropdownMenuItem
+                    key={run.startTime}
+                    onClick={() => onClick(run)}
+                  >
+                    <span className="flex-1">
+                      {run.startTime
+                        ? new Date(run.startTime).toLocaleString()
+                        : "N/A"}
+                    </span>
                   </DropdownMenuItem>
                 ))
               ) : (

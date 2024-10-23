@@ -164,6 +164,18 @@ export function WordApp({
     }
   }, [isOpened, currentVersion, runOutput]);
 
+  // Add this new function to set input values
+  const setInputValues = (values: Partial<FormSchema>) => {
+    (
+      Object.entries(values) as [
+        keyof FormSchema,
+        FormSchema[keyof FormSchema]
+      ][]
+    ).forEach(([key, value]) => {
+      form.setValue(key, value);
+    });
+  };
+
   return (
     <li className="border rounded-lg overflow-hidden">
       <div
@@ -245,7 +257,10 @@ export function WordApp({
             </div>
 
             <div className="flex items-center gap-1">
-              <RunHistory currentVersion={currentVersion} />
+              <RunHistory
+                currentVersion={currentVersion}
+                setInputValues={setInputValues} // Pass the new function here
+              />
               <h4 className="text-md font-semibold">Inputs:</h4>
             </div>
 

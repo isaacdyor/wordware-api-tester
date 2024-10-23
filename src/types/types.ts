@@ -39,13 +39,17 @@ export type App = z.infer<typeof AppSchema>;
 export type AppVersion = z.infer<typeof AppVersionSchema>;
 export type Run = z.infer<typeof RunSchema>;
 
-interface Input {
+export type Input = {
   name: string;
   value: string;
-}
+};
+
+export type RunWithInputs = Run & {
+  inputs: Input[];
+};
 
 export type VersionWithRuns = AppVersion & {
-  runs: (Run & { inputs: Input[] })[];
+  runs: RunWithInputs[];
 };
 
 export type AppWithVersions = App & {

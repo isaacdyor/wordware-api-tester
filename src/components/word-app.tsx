@@ -41,6 +41,13 @@ export function WordApp({
     (v) => v.version === app.selectedVersion,
   );
 
+  const sortedVersions = app.versions.sort((a, b) => {
+    const [aMajor, aMinor] = a.version.split(".").map(Number);
+    const [bMajor, bMinor] = b.version.split(".").map(Number);
+    if (bMajor !== aMajor) return bMajor - aMajor;
+    return bMinor - aMinor;
+  });
+
   // smooth open/close
   useLayoutEffect(() => {
     if (contentRef.current) {
@@ -104,10 +111,13 @@ export function WordApp({
       >
         {currentVersion && (
           <div className="space-y-4 p-4">
-            <p className="text-sm text-muted-foreground">
-              {currentVersion.description}
-            </p>
-            <div className="grid grid-cols-2 gap-2 text-sm">
+            {currentVersion.description && (
+              <p className="text-sm text-muted-foreground">
+                {currentVersion.description}
+              </p>
+            )}
+
+            <div className="flex flex-col gap-2 text-sm">
               <div className="col-span-2">
                 <Label>Version</Label>
                 <Select
@@ -120,7 +130,7 @@ export function WordApp({
                     <SelectValue placeholder="Select version" />
                   </SelectTrigger>
                   <SelectContent>
-                    {app.versions.map((version) => (
+                    {sortedVersions.map((version) => (
                       <SelectItem key={version.version} value={version.version}>
                         {version.version}
                       </SelectItem>

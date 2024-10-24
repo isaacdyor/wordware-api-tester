@@ -1,14 +1,20 @@
 import { Button } from "@/components/ui/button";
-import { Mic, Square } from "lucide-react";
+import { Loader2, Mic, Square } from "lucide-react";
 import { useRef, useState } from "react";
-import { useUploadThing } from "@/lib/uploadthing"; // Make sure this import path is correct
+import { ControllerRenderProps } from "react-hook-form";
+import { PutBlobResult } from "@vercel/blob";
 
-export function AudioRecording() {
+interface AudioRecordingProps {
+  field: ControllerRenderProps;
+}
+
+export function AudioRecording({ field }: AudioRecordingProps) {
   const [isRecording, setIsRecording] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const chunksRef = useRef<Blob[]>([]);
-  const { startUpload } = useUploadThing("audioUploader");
 
   const startRecording = async () => {
     try {
@@ -55,18 +61,32 @@ export function AudioRecording() {
 
         console.log("Recording saved:", file);
 
-        // Upload the file using UploadThing
+        // Upload the file using Vercel Blob
         try {
-          const uploadResult = await startUpload([file]);
-          if (uploadResult && uploadResult[0]) {
-            console.log(
-              "Audio upload completed:",
-              uploadResult[0].name,
-              uploadResult[0].url,
-            );
+          setIsUploading(true);
+          const response = await fetch("/api/upload", {
+            method: "POST",
+            headers: {
+              "content-type": file.type || "application/octet-stream",
+            },
+            body: file,
+          });
+
+          if (response.ok) {
+            const { url } = (await response.json()) as PutBlobResult;
+            field.onChange({
+              url,
+              fileName: file.name,
+            });
+            console.log("Audio uploaded successfully!");
+          } else {
+            const error = await response.text();
+            console.error("Error uploading audio:", error);
           }
         } catch (error) {
           console.error("Error uploading audio:", error);
+        } finally {
+          setIsUploading(false);
         }
       };
     }
@@ -74,7 +94,7 @@ export function AudioRecording() {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex w-full flex-col items-center justify-center gap-2 px-8">
+      <div className="flex w-full flex-col items-center justify-center gap-2 px-4">
         <div className="flex w-full items-center gap-4">
           <div className="h-[1px] flex-1 border-t border-dashed" />
           <p className="text-xs text-muted-foreground">or</p>
@@ -85,8 +105,14 @@ export function AudioRecording() {
             type="button"
             onClick={isRecording ? stopRecording : startRecording}
             className="relative z-10"
+            disabled={isUploading}
           >
-            {isRecording ? (
+            {isUploading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Uploading...
+              </>
+            ) : isRecording ? (
               <>
                 <Square className="mr-2 h-4 w-4" />
                 Stop recording

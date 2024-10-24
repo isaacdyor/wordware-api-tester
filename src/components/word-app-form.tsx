@@ -5,22 +5,20 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
+import { useLocal } from "@/hooks/useLocal";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Play } from "lucide-react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { useLocal } from "@/hooks/useLocal";
-import { RunHistory } from "./history";
 import { FileUpload } from "./file-upload";
+import { RunHistory } from "./history";
 
 interface WordAppFormProps {
   currentVersion: VersionWithRuns;
@@ -54,7 +52,9 @@ export function WordAppForm({
               url: z.string().url(),
               fileName: z.string(),
             })
-            .nullable();
+            .refine((data) => data !== null, {
+              message: "File is required",
+            });
         } else {
           acc[input.name] = z
             .string()
@@ -255,8 +255,6 @@ export function WordAppForm({
                       <FileUpload type={input.type} field={field} />
                     )}
                   </FormControl>
-                  <FormDescription>{input.description}</FormDescription>
-                  <FormMessage />
                 </FormItem>
               )}
             />

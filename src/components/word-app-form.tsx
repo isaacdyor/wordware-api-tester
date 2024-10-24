@@ -217,7 +217,7 @@ export function WordAppForm({
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-1">
       <div className="flex items-center gap-1">
         <RunHistory
           currentVersion={currentVersion}

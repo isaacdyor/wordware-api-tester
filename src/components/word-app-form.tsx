@@ -1,4 +1,4 @@
-import { pollRun, startRun, uploadFile } from "@/actions/actions";
+import { pollRun, startRun } from "@/actions/actions";
 import { AppWithVersions, Run, VersionWithRuns } from "@/types/types";
 
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,6 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useLocal } from "@/hooks/useLocal";
 import { RunHistory } from "./history";
-import { VersionInput } from "@/types/types";
 import { FileUpload } from "./file-upload";
 
 interface WordAppFormProps {
@@ -40,64 +39,74 @@ export function WordAppForm({
 }: WordAppFormProps) {
   const { apiKey } = useLocal();
 
-  const createFormSchema = (inputs: VersionInput[]) => {
-    if (!inputs) return z.object({});
+  const createFormSchema = () => {
+    if (!currentVersion) return z.object({});
 
-    const schemaFields = inputs.reduce<Record<string, z.ZodTypeAny>>(
+    const schemaFields = currentVersion.inputs.reduce(
       (acc, input) => {
-        if (input.type === "text" || input.type === "longtext") {
-          acc[input.name] = z
-            .string()
-            .min(1, { message: "This field is required" });
-        } else {
-          acc[input.name] = z.instanceof(File);
-        }
+        acc[input.name] = z
+          .string()
+          .min(1, { message: "This field is required" });
         return acc;
       },
-      {}
+      {} as Record<string, z.ZodString>,
     );
 
     return z.object(schemaFields);
   };
 
   const form = useForm<z.infer<ReturnType<typeof createFormSchema>>>({
-    resolver: zodResolver(createFormSchema(currentVersion?.inputs)),
-    defaultValues: currentVersion?.inputs.reduce((acc, input) => {
-      acc[input.name] = "";
-      return acc;
-    }, {} as Record<string, string>),
+    resolver: zodResolver(createFormSchema()),
+    defaultValues: currentVersion?.inputs.reduce(
+      (acc, input) => {
+        acc[input.name] = "";
+        return acc;
+      },
+      {} as Record<string, string>,
+    ),
   });
 
-  // Add this type assertion
   type FormSchema = z.infer<ReturnType<typeof createFormSchema>>;
 
-  const handleStartRun = async (values: FormSchema) => {
+  const handleStartRun = async (values: { [key: string]: string }) => {
     console.log(values);
-    Object.entries(values).forEach((entry) => {
-      if (entry[1] instanceof File) {
-        uploadFile(entry[1]);
-      }
-    });
 
-    // try {
-    //   setRunOutput({ status: "RUNNING" });
-    //   if (!currentVersion) throw new Error("Selected version not found");
+    try {
+      setRunOutput({ status: "RUNNING" });
+      if (!currentVersion) throw new Error("Selected version not found");
 
-    //   const runId = await startRun(
-    //     apiKey,
-    //     currentVersion.version,
-    //     values,
-    //     app.orgSlug,
-    //     app.appSlug
-    //   );
-    //   pollRunStatus(runId, values);
-    // } catch (error) {
-    //   console.error("Error running app:", error);
-    //   setRunOutput({
-    //     status: "ERROR",
-    //     errors: [{ message: "Failed to run app" }],
-    //   });
-    // }
+      const formattedValues = currentVersion.inputs.reduce(
+        (acc, input) => {
+          if (input.type === "image" || input.type === "audio") {
+            acc[input.name] = {
+              type: input.type,
+              image_url: values[input.name],
+            };
+          } else {
+            acc[input.name] = values[input.name];
+          }
+          return acc;
+        },
+        {} as Record<string, string | { type: string; image_url: string }>,
+      );
+
+      console.log(formattedValues);
+
+      const runId = await startRun(
+        apiKey,
+        currentVersion.version,
+        formattedValues,
+        app.orgSlug,
+        app.appSlug,
+      );
+      pollRunStatus(runId, values);
+    } catch (error) {
+      console.error("Error running app:", error);
+      setRunOutput({
+        status: "ERROR",
+        errors: [{ message: "Failed to run app" }],
+      });
+    }
   };
 
   const pollRunStatus = async (runId: string, values: FormSchema) => {
@@ -116,7 +125,7 @@ export function WordAppForm({
           versions: app.versions.map((v) =>
             v.version === currentVersion?.version
               ? { ...v, runs: [...v.runs, run] }
-              : v
+              : v,
           ),
         };
 
@@ -135,12 +144,11 @@ export function WordAppForm({
     }
   };
 
-  // Add this new function to set input values
   const setInputValues = (values: Partial<FormSchema>) => {
     (
       Object.entries(values) as [
         keyof FormSchema,
-        FormSchema[keyof FormSchema]
+        FormSchema[keyof FormSchema],
       ][]
     ).forEach(([key, value]) => {
       form.setValue(key, value);

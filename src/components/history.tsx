@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input, Run, RunWithInputs, VersionWithRuns } from "@/types/types";
+import { RunInput, Run, RunWithInputs, VersionWithRuns } from "@/types/types";
 
 import { History } from "lucide-react";
 
@@ -24,11 +24,11 @@ export function RunHistory({
     if (!run.inputs) return;
 
     const inputValues = run.inputs.reduce(
-      (acc: Record<string, string>, input: Input) => {
+      (acc: Record<string, string>, input: RunInput) => {
         acc[input.name] = input.value;
         return acc;
       },
-      {}
+      {},
     );
     setRunOutput(run);
     setInputValues(inputValues);

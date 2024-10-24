@@ -34,7 +34,7 @@ export async function fetchWordApps(apiKey: string): Promise<App[]> {
 export async function fetchAppVersions(
   apiKey: string,
   orgSlug: string,
-  appSlug: string
+  appSlug: string,
 ): Promise<AppVersion[]> {
   try {
     const response = await fetch(
@@ -43,7 +43,7 @@ export async function fetchAppVersions(
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -61,9 +61,9 @@ export async function fetchAppVersions(
 export async function startRun(
   apiKey: string,
   version: string,
-  inputs: Record<string, string>,
+  inputs: Record<string, string | { type: string; image_url: string }>,
   orgSlug: string,
-  appSlug: string
+  appSlug: string,
 ): Promise<string> {
   try {
     const response = await fetch(
@@ -75,7 +75,7 @@ export async function startRun(
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ inputs }),
-      }
+      },
     );
 
     if (!response.ok) throw new Error("Failed to start run");
@@ -95,7 +95,7 @@ export async function pollRun(apiKey: string, runId: string): Promise<Run> {
       `https://api.wordware.ai/v1alpha/runs/${runId}`,
       {
         headers: { Authorization: `Bearer ${apiKey}` },
-      }
+      },
     );
 
     if (!response.ok) throw new Error("Failed to fetch run status");

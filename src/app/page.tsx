@@ -1,17 +1,18 @@
 "use client";
 
 import { KeyInput } from "@/components/key-input";
-import { WordApp } from "@/components/word-app";
-import { useLocal } from "@/hooks/useLocal";
-import { cn } from "@/lib/utils";
-import { AppWithVersions } from "@/types/types";
-import { useLayoutEffect, useState } from "react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { WordApp } from "@/components/word-app";
+import { useLocal } from "@/hooks/useLocal";
+import { cn } from "@/lib/utils";
+import { AppWithVersions } from "@/types/types";
+import Link from "next/link";
+import { useLayoutEffect, useState } from "react";
 
 export default function Home() {
   const { apps, updateApps, updateApiKey, apiKey } = useLocal();
@@ -37,7 +38,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center py-8">
       <div className="w-full max-w-2xl space-y-4">
-        <div className="flex w-full items-center gap-4">
+        <div className="flex w-full items-start gap-4">
           <div className="flex items-center gap-2">
             {apiKey && (
               <TooltipProvider delayDuration={0}>
@@ -61,13 +62,14 @@ export default function Home() {
             <h2 className="whitespace-nowrap text-2xl font-bold">Word Apps:</h2>
           </div>
           <KeyInput
+            apiKey={apiKey}
             updateApiKey={updateApiKey}
             updateApps={updateApps}
             apps={apps}
             setIsFetching={setIsFetching}
           />
         </div>
-        {apps.length > 0 && (
+        {apps.length > 0 ? (
           <ul className="space-y-2">
             {apps.map((app) => {
               const key = `${app.orgSlug}/${app.appSlug}`;
@@ -84,6 +86,35 @@ export default function Home() {
               );
             })}
           </ul>
+        ) : (
+          apiKey && (
+            <div className="flex w-full items-center justify-center py-48">
+              <div className="flex max-w-sm flex-col items-center gap-4">
+                <p className="text-center text-xl font-semibold">
+                  No apps found.
+                </p>
+                <p className="text-center text-muted-foreground">
+                  Visit the{" "}
+                  <Link
+                    className="text-blue-500 hover:underline"
+                    href="https://app.wordware.ai/"
+                    target="_blank"
+                  >
+                    Wordware dashboard
+                  </Link>{" "}
+                  to create an app or explore examples on the{" "}
+                  <Link
+                    className="text-blue-500 hover:underline"
+                    href="https://app.wordware.ai/explore"
+                    target="_blank"
+                  >
+                    Explore page
+                  </Link>
+                  .
+                </p>
+              </div>
+            </div>
+          )
         )}
       </div>
     </div>

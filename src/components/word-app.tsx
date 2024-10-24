@@ -148,7 +148,7 @@ export function WordApp({
               runOutput={runOutput}
             />
 
-            {runOutput && (
+            {runOutput && runOutput.status !== "RUNNING" && (
               <div className="mt-4">
                 {runOutput.status === "COMPLETE" && runOutput.outputs && (
                   <Output runOutputs={runOutput.outputs} />

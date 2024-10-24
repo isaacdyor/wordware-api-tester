@@ -259,7 +259,12 @@ export function WordAppForm({
               )}
             />
           ))}
-          <Button type="submit" disabled={runOutput?.status === "RUNNING"}>
+          <Button
+            type="submit"
+            disabled={
+              runOutput?.status === "RUNNING" || !form.formState.isValid
+            }
+          >
             {runOutput?.status === "RUNNING" ? (
               <Loader2 className="animate-spin" />
             ) : (

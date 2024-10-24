@@ -9,9 +9,9 @@ export const ourFileRouter = {
     },
   ),
 
-  audioUploader: f({ audio: { maxFileSize: "8MB" } }).onUploadComplete(
+  audioUploader: f({ audio: { maxFileSize: "32MB" } }).onUploadComplete(
     async ({ file }) => {
-      console.log("Audio upload complete for file", file);
+      console.log("Audio upload completed:", file.name, file.url);
     },
   ),
 

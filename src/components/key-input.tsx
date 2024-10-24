@@ -117,11 +117,11 @@ export function KeyInput({
     }
   };
 
-  useEffect(() => {
-    if (apiKey) {
-      fetchApps(apiKey);
-    }
-  }, [apiKey, fetchApps]);
+  // useEffect(() => {
+  //   if (apiKey) {
+  //     fetchApps(apiKey);
+  //   }
+  // }, [apiKey, fetchApps]);
 
   return (
     <Form {...form}>

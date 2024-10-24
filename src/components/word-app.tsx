@@ -17,7 +17,7 @@ import {
 import type { AppWithVersions, Run } from "@/types/types";
 
 import { ChevronDown, Info } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Output } from "./output";
 import { WordAppForm } from "./word-app-form";
 
@@ -38,11 +38,11 @@ export function WordApp({
   const contentRef = useRef<HTMLDivElement>(null);
 
   const currentVersion = app.versions.find(
-    (v) => v.version === app.selectedVersion
+    (v) => v.version === app.selectedVersion,
   );
 
   // smooth open/close
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (contentRef.current) {
       if (isOpened) {
         contentRef.current.style.maxHeight = `${contentRef.current.scrollHeight}px`;
@@ -50,12 +50,12 @@ export function WordApp({
         contentRef.current.style.maxHeight = "0px";
       }
     }
-  }, [isOpened, currentVersion, runOutput]);
+  });
 
   return (
-    <li className="border rounded-lg overflow-hidden">
+    <li className="overflow-hidden rounded-lg border">
       <div
-        className="flex justify-between items-center p-4 cursor-pointer bg-muted hover:bg-muted/80"
+        className="flex cursor-pointer items-center justify-between bg-muted p-4 hover:bg-muted/80"
         onClick={toggleOpen}
       >
         <div className="flex items-center gap-2">
@@ -65,7 +65,7 @@ export function WordApp({
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Info className="w-4 h-4" />
+                <Info className="h-4 w-4" />
               </TooltipTrigger>
               <TooltipContent
                 className="max-w-xs border-border"
@@ -103,7 +103,7 @@ export function WordApp({
         className="overflow-hidden transition-[max-height] duration-300 ease-out"
       >
         {currentVersion && (
-          <div className="p-4 space-y-4">
+          <div className="space-y-4 p-4">
             <p className="text-sm text-muted-foreground">
               {currentVersion.description}
             </p>
@@ -146,7 +146,7 @@ export function WordApp({
                 {runOutput.status === "ERROR" && runOutput.errors && (
                   <div>
                     <h5 className="font-semibold text-destructive">Errors:</h5>
-                    <ul className="list-disc pl-5 mt-2">
+                    <ul className="mt-2 list-disc pl-5">
                       {runOutput.errors.map((error, index) => (
                         <li key={index} className="text-destructive">
                           {error.message}

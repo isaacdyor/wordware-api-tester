@@ -54,7 +54,9 @@ export function WordAppForm({
               url: z.string().url(),
               fileName: z.string(),
             })
-            .nullable();
+            .refine((data) => data !== null, {
+              message: "File is required",
+            });
         } else {
           acc[input.name] = z
             .string()
@@ -255,8 +257,6 @@ export function WordAppForm({
                       <FileUpload type={input.type} field={field} />
                     )}
                   </FormControl>
-                  <FormDescription>{input.description}</FormDescription>
-                  <FormMessage />
                 </FormItem>
               )}
             />

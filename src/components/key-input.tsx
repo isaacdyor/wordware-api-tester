@@ -1,7 +1,7 @@
 import { fetchAppVersions, fetchWordApps } from "@/actions/actions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "./ui/button";
@@ -39,69 +39,74 @@ export function KeyInput({ updateApiKey, updateApps, apps }: KeyInputProps) {
     form.reset({ apiKey });
   }, [apiKey, form]);
 
-  async function onSubmit(data: FormData) {
-    setIsLoading(true);
-    setError(null);
-    updateApiKey(data.apiKey);
-    try {
-      const fetchedApps = await fetchWordApps(data.apiKey);
-      const appsWithVersions: AppWithVersions[] = [];
+  const onSubmit = useCallback(
+    async (data: FormData) => {
+      setIsLoading(true);
+      setError(null);
+      updateApiKey(data.apiKey);
+      try {
+        const fetchedApps = await fetchWordApps(data.apiKey);
+        const appsWithVersions: AppWithVersions[] = [];
 
-      for (const app of fetchedApps) {
-        try {
-          const versions = await fetchAppVersions(
-            data.apiKey,
-            app.orgSlug,
-            app.appSlug
-          );
+        for (const app of fetchedApps) {
+          try {
+            const versions = await fetchAppVersions(
+              data.apiKey,
+              app.orgSlug,
+              app.appSlug,
+            );
 
-          const versionsSorted = versions.reverse();
+            const versionsSorted = versions.reverse();
 
-          const versionWithRuns = versionsSorted.map((version) => {
-            const existingVersion = apps
-              .find((a) => a.appSlug === app.appSlug)
-              ?.versions.find((v) => v.version === version.version);
-            if (existingVersion) {
-              return {
-                ...version,
-                runs: existingVersion.runs,
-              };
-            } else {
-              return {
-                ...version,
-                runs: [],
-              };
-            }
-          });
+            const versionWithRuns = versionsSorted.map((version) => {
+              const existingVersion = apps
+                .find((a) => a.appSlug === app.appSlug)
+                ?.versions.find((v) => v.version === version.version);
+              if (existingVersion) {
+                return {
+                  ...version,
+                  runs: existingVersion.runs,
+                };
+              } else {
+                return {
+                  ...version,
+                  runs: [],
+                };
+              }
+            });
 
-          appsWithVersions.push({
-            ...app,
-            versions: versionWithRuns,
-            selectedVersion: versionsSorted[0]?.version || "",
-          });
-        } catch (versionError) {
-          console.error(
-            `Error fetching versions for ${app.appSlug}:`,
-            versionError
-          );
+            appsWithVersions.push({
+              ...app,
+              versions: versionWithRuns,
+              selectedVersion: versionsSorted[0]?.version || "",
+            });
+          } catch (versionError) {
+            console.error(
+              `Error fetching versions for ${app.appSlug}:`,
+              versionError,
+            );
+          }
         }
+
+        appsWithVersions.sort(
+          (a, b) =>
+            new Date(b.lastUpdated).getTime() -
+            new Date(a.lastUpdated).getTime(),
+        );
+
+        updateApps(appsWithVersions);
+      } catch (error) {
+        console.error("Failed to fetch apps:", error);
+        setError(
+          "Failed to fetch apps. Please check your API key and try again.",
+        );
+      } finally {
+        setIsLoading(false);
       }
+    },
+    [updateApiKey, updateApps, apps],
+  );
 
-      appsWithVersions.sort(
-        (a, b) =>
-          new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
-      );
-
-      updateApps(appsWithVersions);
-    } catch (error) {
-      console.error("Failed to fetch apps:", error);
-      setError(
-        "Failed to fetch apps. Please check your API key and try again."
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -111,7 +116,7 @@ export function KeyInput({ updateApiKey, updateApps, apps }: KeyInputProps) {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <div className="flex ">
+                <div className="flex">
                   <Input
                     disabled={form.formState.isSubmitting}
                     placeholder="API Key"

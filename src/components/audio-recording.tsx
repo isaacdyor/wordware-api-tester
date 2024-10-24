@@ -94,7 +94,7 @@ export function AudioRecording({ field }: AudioRecordingProps) {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex w-full flex-col items-center justify-center gap-2 px-8">
+      <div className="flex w-full flex-col items-center justify-center gap-2 px-4">
         <div className="flex w-full items-center gap-4">
           <div className="h-[1px] flex-1 border-t border-dashed" />
           <p className="text-xs text-muted-foreground">or</p>

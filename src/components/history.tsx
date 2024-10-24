@@ -41,11 +41,11 @@ export function RunHistory({
           <History className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56">
+      <DropdownMenuContent className="w-48">
         <DropdownMenuLabel>Run history</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {currentVersion.runs.length > 0 ? (
-          currentVersion.runs.map((run) => (
+          [...currentVersion.runs].reverse().map((run) => (
             <DropdownMenuItem key={run.startTime} onClick={() => onClick(run)}>
               <span className="flex-1">
                 {run.startTime

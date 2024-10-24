@@ -77,17 +77,31 @@ export function WordAppForm({
 
       const formattedValues = currentVersion.inputs.reduce(
         (acc, input) => {
-          if (input.type === "image" || input.type === "audio") {
+          if (input.type === "image") {
             acc[input.name] = {
               type: input.type,
               image_url: values[input.name],
+            };
+          } else if (input.type === "audio") {
+            acc[input.name] = {
+              type: input.type,
+              audio_url: values[input.name],
             };
           } else {
             acc[input.name] = values[input.name];
           }
           return acc;
         },
-        {} as Record<string, string | { type: string; image_url: string }>,
+        {} as Record<
+          string,
+          | string
+          | {
+              type: string;
+              image_url?: string;
+              audio_url?: string;
+              file_url?: string;
+            }
+        >,
       );
 
       console.log(formattedValues);

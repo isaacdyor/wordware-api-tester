@@ -18,7 +18,7 @@ export function FileUpload({ type, field }: FileUploadProps) {
         return "imageUploader";
       case "audio":
         return "audioUploader";
-      case "pdf":
+      case "file":
         return "pdfUploader";
       default:
         throw new Error(
@@ -51,7 +51,7 @@ export function FileUpload({ type, field }: FileUploadProps) {
           console.error(error);
         }}
         config={{ mode: "auto" }}
-        className="ut-button:bg-primary ut-button:text-primary-foreground ut-allowed-content:text-muted-foreground ut-label:text-foreground ut-upload-icon:text-muted-foreground ut-ready:border-border"
+        className="ut-button:bg-primary ut-button:text-primary-foreground ut-allowed-content:text-muted-foreground ut-label:text-foreground ut-upload-icon:text-muted-foreground ut-button:ut-readying:bg-muted ut-ready:cursor-pointer ut-ready:border-border"
       />
     );
   } catch (error) {

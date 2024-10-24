@@ -61,7 +61,16 @@ export async function fetchAppVersions(
 export async function startRun(
   apiKey: string,
   version: string,
-  inputs: Record<string, string | { type: string; image_url: string }>,
+  inputs: Record<
+    string,
+    | string
+    | {
+        type: string;
+        image_url?: string;
+        audio_url?: string;
+        file_url?: string;
+      }
+  >,
   orgSlug: string,
   appSlug: string,
 ): Promise<string> {

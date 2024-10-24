@@ -11,7 +11,7 @@ export const AppSchema = z.object({
 
 export const InputSchema = z.object({
   name: z.string(),
-  type: z.enum(["text", "longtext", "image", "audio"]),
+  type: z.enum(["text", "longtext", "image", "audio", "file"]),
   description: z.string().optional(),
 });
 

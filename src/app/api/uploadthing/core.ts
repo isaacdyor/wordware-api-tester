@@ -3,7 +3,7 @@ import { createUploadthing, type FileRouter } from "uploadthing/next";
 const f = createUploadthing();
 
 export const ourFileRouter = {
-  imageUploader: f({ image: { maxFileSize: "4MB" } }).onUploadComplete(
+  imageUploader: f({ image: { maxFileSize: "8MB" } }).onUploadComplete(
     async ({ file }) => {
       console.log("Image upload complete for file", file);
     },
@@ -15,7 +15,7 @@ export const ourFileRouter = {
     },
   ),
 
-  pdfUploader: f({ pdf: { maxFileSize: "4MB" } }).onUploadComplete(
+  pdfUploader: f({ pdf: { maxFileSize: "8MB" } }).onUploadComplete(
     async ({ file }) => {
       console.log("PDF upload complete for file", file);
     },

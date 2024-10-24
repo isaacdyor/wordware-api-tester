@@ -1,4 +1,4 @@
-import { pollRun, startRun } from "@/actions/actions";
+import { pollRun, startRun, uploadFile } from "@/actions/actions";
 import { AppWithVersions, Run, VersionWithRuns } from "@/types/types";
 
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,8 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useLocal } from "@/hooks/useLocal";
 import { RunHistory } from "./history";
+import { VersionInput } from "@/types/types";
+import { FileUpload } from "./file-upload";
 
 interface WordAppFormProps {
   currentVersion: VersionWithRuns;
@@ -37,21 +39,29 @@ export function WordAppForm({
   runOutput,
 }: WordAppFormProps) {
   const { apiKey } = useLocal();
-  const createFormSchema = () => {
-    if (!currentVersion) return z.object({});
 
-    const schemaFields = currentVersion.inputs.reduce((acc, input) => {
-      acc[input.name] = z
-        .string()
-        .min(1, { message: "This field is required" });
-      return acc;
-    }, {} as Record<string, z.ZodString>);
+  const createFormSchema = (inputs: VersionInput[]) => {
+    if (!inputs) return z.object({});
+
+    const schemaFields = inputs.reduce<Record<string, z.ZodTypeAny>>(
+      (acc, input) => {
+        if (input.type === "text" || input.type === "longtext") {
+          acc[input.name] = z
+            .string()
+            .min(1, { message: "This field is required" });
+        } else {
+          acc[input.name] = z.instanceof(File);
+        }
+        return acc;
+      },
+      {}
+    );
 
     return z.object(schemaFields);
   };
 
   const form = useForm<z.infer<ReturnType<typeof createFormSchema>>>({
-    resolver: zodResolver(createFormSchema()),
+    resolver: zodResolver(createFormSchema(currentVersion?.inputs)),
     defaultValues: currentVersion?.inputs.reduce((acc, input) => {
       acc[input.name] = "";
       return acc;
@@ -62,25 +72,32 @@ export function WordAppForm({
   type FormSchema = z.infer<ReturnType<typeof createFormSchema>>;
 
   const handleStartRun = async (values: FormSchema) => {
-    try {
-      setRunOutput({ status: "RUNNING" });
-      if (!currentVersion) throw new Error("Selected version not found");
+    console.log(values);
+    Object.entries(values).forEach((entry) => {
+      if (entry[1] instanceof File) {
+        uploadFile(entry[1]);
+      }
+    });
 
-      const runId = await startRun(
-        apiKey,
-        currentVersion.version,
-        values,
-        app.orgSlug,
-        app.appSlug
-      );
-      pollRunStatus(runId, values);
-    } catch (error) {
-      console.error("Error running app:", error);
-      setRunOutput({
-        status: "ERROR",
-        errors: [{ message: "Failed to run app" }],
-      });
-    }
+    // try {
+    //   setRunOutput({ status: "RUNNING" });
+    //   if (!currentVersion) throw new Error("Selected version not found");
+
+    //   const runId = await startRun(
+    //     apiKey,
+    //     currentVersion.version,
+    //     values,
+    //     app.orgSlug,
+    //     app.appSlug
+    //   );
+    //   pollRunStatus(runId, values);
+    // } catch (error) {
+    //   console.error("Error running app:", error);
+    //   setRunOutput({
+    //     status: "ERROR",
+    //     errors: [{ message: "Failed to run app" }],
+    //   });
+    // }
   };
 
   const pollRunStatus = async (runId: string, values: FormSchema) => {
@@ -159,12 +176,14 @@ export function WordAppForm({
                         placeholder={input.description || ""}
                         {...field}
                       />
-                    ) : (
+                    ) : input.type === "text" ? (
                       <Input
                         type="text"
                         placeholder={input.description || ""}
                         {...field}
                       />
+                    ) : (
+                      <FileUpload type={input.type} field={field} />
                     )}
                   </FormControl>
                   <FormDescription>{input.description}</FormDescription>

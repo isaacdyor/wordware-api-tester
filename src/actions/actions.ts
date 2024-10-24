@@ -107,3 +107,9 @@ export async function pollRun(apiKey: string, runId: string): Promise<Run> {
     throw error;
   }
 }
+
+export async function uploadFile(file: File): Promise<string> {
+  return await new Promise((resolve) => {
+    resolve(file.name);
+  });
+}

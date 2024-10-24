@@ -13,8 +13,8 @@ import Link from "next/link";
 interface KeyInputProps {
   apiKey: string;
   updateApiKey: (newApiKey: string) => void;
-  updateApps: (newApps: AppWithVersions[]) => void;
-  apps: AppWithVersions[];
+  updateApps: (newApps: AppWithVersions[] | null) => void;
+  apps: AppWithVersions[] | null;
   setIsFetching: (isFetching: boolean) => void;
 }
 
@@ -26,6 +26,7 @@ export function KeyInput({
   setIsFetching,
 }: KeyInputProps) {
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const formSchema = z.object({
     apiKey: z.string(),
@@ -70,7 +71,7 @@ export function KeyInput({
 
             const versionWithRuns = versionsSorted.map((version) => {
               const existingVersion = appsRef.current
-                .find((a) => a.appSlug === app.appSlug)
+                ?.find((a) => a.appSlug === app.appSlug)
                 ?.versions.find((v) => v.version === version.version);
               if (existingVersion) {
                 return {
@@ -116,15 +117,19 @@ export function KeyInput({
 
   const onSubmit = async (data: FormData) => {
     setError(null);
-    updateApiKey(data.apiKey);
-    setIsFetching(true);
+    setIsSubmitting(true);
     try {
+      updateApiKey(data.apiKey);
+      setIsFetching(true);
       await fetchApps(data.apiKey);
     } catch (error) {
       console.error("Failed to fetch apps:", error);
       setError(
         "Failed to fetch apps. Please check your API key and try again.",
       );
+    } finally {
+      setIsSubmitting(false);
+      setIsFetching(false);
     }
   };
 
@@ -147,18 +152,18 @@ export function KeyInput({
                 <FormControl>
                   <div className="flex">
                     <Input
-                      disabled={form.formState.isSubmitting}
+                      disabled={isSubmitting}
                       placeholder="API Key"
                       className="flex-grow rounded-r-none"
                       {...field}
                     />
                     <Button
-                      disabled={form.formState.isSubmitting}
+                      disabled={isSubmitting}
                       type="submit"
                       size="icon"
                       className="rounded-l-none px-2"
                     >
-                      {form.formState.isSubmitting ? (
+                      {isSubmitting ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <Save className="h-4 w-4" />
@@ -173,7 +178,7 @@ export function KeyInput({
           />
         </form>
       </Form>
-      {!apiKey && (
+      {apps === null && (
         <p className="text-xs text-muted-foreground">
           Go to your{" "}
           <Link
@@ -182,7 +187,7 @@ export function KeyInput({
           >
             dashboard
           </Link>{" "}
-          and go to the API tab of the settings page to get started.
+          and go to the API tab of the settings find your key.
         </p>
       )}
     </div>

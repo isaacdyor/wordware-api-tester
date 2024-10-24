@@ -26,21 +26,23 @@ export default function Home() {
   }, []);
 
   const updateApp = (app: AppWithVersions) => {
-    const updatedApps = apps.map((currentApp) =>
+    const updatedApps = apps?.map((currentApp) =>
       currentApp.appSlug === app.appSlug ? app : currentApp,
     );
-    updateApps(updatedApps);
+    updateApps(updatedApps ?? null);
   };
 
   // Early return with nothing if not client-side
   if (!isClient) return null;
+
+  console.log(apps);
 
   return (
     <div className="flex min-h-screen flex-col items-center py-8">
       <div className="w-full max-w-2xl space-y-4">
         <div className="flex w-full items-start gap-4">
           <div className="flex items-center gap-2">
-            {apiKey && (
+            {apps !== null && (
               <TooltipProvider delayDuration={0}>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -69,7 +71,7 @@ export default function Home() {
             setIsFetching={setIsFetching}
           />
         </div>
-        {apps.length > 0 ? (
+        {apps && apps.length > 0 ? (
           <ul className="space-y-2">
             {apps.map((app) => {
               const key = `${app.orgSlug}/${app.appSlug}`;
@@ -87,7 +89,7 @@ export default function Home() {
             })}
           </ul>
         ) : (
-          apiKey && (
+          apps !== null && (
             <div className="flex w-full items-center justify-center py-48">
               <div className="flex max-w-sm flex-col items-center gap-4">
                 <p className="text-center text-xl font-semibold">

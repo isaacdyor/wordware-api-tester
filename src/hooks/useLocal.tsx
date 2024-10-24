@@ -2,7 +2,7 @@ import { AppWithVersions } from "@/types/types";
 import { useCallback, useEffect, useState } from "react";
 
 export const useLocal = () => {
-  const [apps, setApps] = useState<AppWithVersions[]>([]);
+  const [apps, setApps] = useState<AppWithVersions[] | null>(null);
   const [apiKey, setApiKey] = useState<string>("");
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export const useLocal = () => {
     }
   }, []);
 
-  const updateApps = useCallback((newApps: AppWithVersions[]) => {
+  const updateApps = useCallback((newApps: AppWithVersions[] | null) => {
     setApps(newApps);
     localStorage.setItem("apps", JSON.stringify(newApps));
   }, []);

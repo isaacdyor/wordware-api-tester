@@ -44,12 +44,25 @@ export function WordAppForm({
 
     const schemaFields = currentVersion.inputs.reduce(
       (acc, input) => {
-        acc[input.name] = z
-          .string()
-          .min(1, { message: "This field is required" });
+        if (
+          input.type === "image" ||
+          input.type === "audio" ||
+          input.type === "file"
+        ) {
+          acc[input.name] = z
+            .object({
+              url: z.string().url(),
+              fileName: z.string(),
+            })
+            .nullable();
+        } else {
+          acc[input.name] = z
+            .string()
+            .min(1, { message: "This field is required" });
+        }
         return acc;
       },
-      {} as Record<string, z.ZodString>,
+      {} as Record<string, z.ZodTypeAny>,
     );
 
     return z.object(schemaFields);
@@ -59,16 +72,23 @@ export function WordAppForm({
     resolver: zodResolver(createFormSchema()),
     defaultValues: currentVersion?.inputs.reduce(
       (acc, input) => {
-        acc[input.name] = "";
+        acc[input.name] =
+          input.type === "image" ||
+          input.type === "audio" ||
+          input.type === "file"
+            ? null
+            : "";
         return acc;
       },
-      {} as Record<string, string>,
+      {} as Record<string, string | null>,
     ),
   });
 
   type FormSchema = z.infer<ReturnType<typeof createFormSchema>>;
 
-  const handleStartRun = async (values: { [key: string]: string }) => {
+  const handleStartRun = async (values: {
+    [key: string]: string | { url: string; fileName: string };
+  }) => {
     console.log(values);
 
     try {
@@ -77,18 +97,22 @@ export function WordAppForm({
 
       const formattedValues = currentVersion.inputs.reduce(
         (acc, input) => {
-          if (input.type === "image") {
-            acc[input.name] = {
-              type: input.type,
-              image_url: values[input.name],
+          if (
+            input.type === "image" ||
+            input.type === "audio" ||
+            input.type === "file"
+          ) {
+            const fileValue = values[input.name] as {
+              url: string;
+              fileName: string;
             };
-          } else if (input.type === "audio") {
             acc[input.name] = {
               type: input.type,
-              audio_url: values[input.name],
+              [`${input.type}_url`]: fileValue.url,
+              file_name: fileValue.fileName,
             };
           } else {
-            acc[input.name] = values[input.name];
+            acc[input.name] = values[input.name] as string;
           }
           return acc;
         },
@@ -100,6 +124,7 @@ export function WordAppForm({
               image_url?: string;
               audio_url?: string;
               file_url?: string;
+              file_name: string;
             }
         >,
       );
@@ -128,10 +153,30 @@ export function WordAppForm({
       const runStatus = await pollRun(apiKey, runId);
       setRunOutput(runStatus);
       if (runStatus.status === "COMPLETE") {
-        const inputs = Object.entries(values).map(([name, value]) => ({
-          name,
-          value: String(value),
-        }));
+        const inputs = Object.entries(values).map(([name, value]) => {
+          const input = currentVersion.inputs.find((i) => i.name === name);
+          if (
+            input &&
+            (input.type === "image" ||
+              input.type === "audio" ||
+              input.type === "file")
+          ) {
+            const fileValue = value as { url: string; fileName: string };
+            return {
+              name,
+              value: JSON.stringify({
+                url: fileValue.url,
+                fileName: fileValue.fileName,
+                type: input.type,
+              }),
+            };
+          }
+          return {
+            name,
+            value: String(value),
+          };
+        });
+
         const run = { ...runStatus, inputs };
 
         const updatedApp = {
@@ -165,8 +210,10 @@ export function WordAppForm({
         FormSchema[keyof FormSchema],
       ][]
     ).forEach(([key, value]) => {
-      form.setValue(key, value);
+      const parsedValue = JSON.parse(value);
+      form.setValue(key, parsedValue as FormSchema[keyof FormSchema]);
     });
+    console.log(form.getValues());
   };
 
   return (

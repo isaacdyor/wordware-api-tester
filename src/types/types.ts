@@ -44,6 +44,7 @@ export type VersionInput = z.infer<typeof InputSchema>;
 export type RunInput = {
   name: string;
   value: string;
+  label?: string;
 };
 
 export type RunWithInputs = Run & {

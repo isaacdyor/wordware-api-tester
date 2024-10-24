@@ -1,8 +1,6 @@
 import { UploadDropzone } from "@/lib/uploadthing";
 import { X } from "lucide-react";
-import { useState } from "react";
 import { ControllerRenderProps } from "react-hook-form";
-import { ClientUploadedFileData } from "uploadthing/types";
 
 interface FileUploadProps {
   type: string;
@@ -10,8 +8,6 @@ interface FileUploadProps {
 }
 
 export function FileUpload({ type, field }: FileUploadProps) {
-  const [file, setFile] = useState<ClientUploadedFileData<null> | null>(null);
-
   const getEndpoint = (fileType: string) => {
     switch (fileType.toLowerCase()) {
       case "image":
@@ -27,14 +23,18 @@ export function FileUpload({ type, field }: FileUploadProps) {
     }
   };
 
+  const handleRemove = () => {
+    field.onChange(null);
+  };
+
   try {
     const endpoint = getEndpoint(type);
-    return file ? (
+    return field.value ? (
       <div className="flex w-fit items-center gap-2 rounded-md border px-4 py-2 text-sm">
-        {file.name}
+        {field.value.fileName}
         <X
           className="h-4 w-4 hover:cursor-pointer hover:text-muted-foreground"
-          onClick={() => setFile(null)}
+          onClick={handleRemove}
         />
       </div>
     ) : (
@@ -43,8 +43,10 @@ export function FileUpload({ type, field }: FileUploadProps) {
         onClientUploadComplete={(res) => {
           if (res && res[0]) {
             const uploadedFile = res[0];
-            field.onChange(uploadedFile.url);
-            setFile(uploadedFile);
+            field.onChange({
+              url: uploadedFile.url,
+              fileName: uploadedFile.name,
+            });
           }
         }}
         onUploadError={(error: Error) => {

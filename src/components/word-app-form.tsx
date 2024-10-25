@@ -1,5 +1,5 @@
-import { pollRun, startRun } from "@/actions/actions";
-import { AppWithVersions, Run, VersionWithRuns } from "@/types/types";
+import { startRun } from "@/actions/actions";
+import { AppWithVersions, VersionWithRuns } from "@/types/types";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,18 +22,20 @@ import { RunHistory } from "./history";
 
 interface WordAppFormProps {
   currentVersion: VersionWithRuns;
-  setRunOutput: (run: Run | null) => void;
-  runOutput: Run | null;
+  setOutputs: (outputs: Record<string, string>) => void;
+  runStatus: "COMPLETE" | "RUNNING" | "ERROR" | null;
+  setRunStatus: (status: "COMPLETE" | "RUNNING" | "ERROR" | null) => void;
   app: AppWithVersions;
   updateApp: (newApp: AppWithVersions) => void;
 }
 
 export function WordAppForm({
   currentVersion,
-  setRunOutput,
+  setOutputs,
+  setRunStatus,
   app,
   updateApp,
-  runOutput,
+  runStatus,
 }: WordAppFormProps) {
   const { apiKey } = useLocal();
 
@@ -92,7 +94,8 @@ export function WordAppForm({
     console.log(values);
 
     try {
-      setRunOutput({ status: "RUNNING" });
+      setRunStatus("RUNNING");
+      setOutputs({});
       if (!currentVersion) throw new Error("Selected version not found");
 
       const formattedValues = currentVersion.inputs.reduce(
@@ -138,68 +141,64 @@ export function WordAppForm({
         app.orgSlug,
         app.appSlug,
       );
-      pollRunStatus(runId, values);
+      streamRunOutput(runId, values);
     } catch (error) {
       console.error("Error running app:", error);
-      setRunOutput({
-        status: "ERROR",
-        errors: [{ message: "Failed to run app" }],
-      });
+      setRunStatus("ERROR");
     }
   };
 
-  const pollRunStatus = async (runId: string, values: FormSchema) => {
-    try {
-      const runStatus = await pollRun(apiKey, runId);
-      setRunOutput(runStatus);
-      if (runStatus.status === "COMPLETE") {
-        const inputs = Object.entries(values).map(([name, value]) => {
-          const input = currentVersion.inputs.find((i) => i.name === name);
-          if (
-            input &&
-            (input.type === "image" ||
-              input.type === "audio" ||
-              input.type === "file")
-          ) {
-            const fileValue = value as { url: string; fileName: string };
-            return {
-              name,
-              value: JSON.stringify({
-                url: fileValue.url,
-                fileName: fileValue.fileName,
-                type: input.type,
-              }),
-            };
+  const streamRunOutput = async (runId: string, values: FormSchema) => {
+    const response = await fetch(`/api/stream/${runId}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+
+    if (!response.body) {
+      throw new Error("No response body");
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    let jsonBuffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) {
+        setRunStatus("COMPLETE");
+        break;
+      }
+
+      // Decode the chunk and split by lines
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split("\n");
+
+      // Process each line
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          jsonBuffer += line.slice(6);
+          if (jsonBuffer.trim().endsWith("}")) {
+            try {
+              const data = JSON.parse(jsonBuffer);
+
+              // Update outputs by appending content to existing path or creating new one
+              setOutputs((prevOutputs) => ({
+                ...prevOutputs,
+                [data.path]: (prevOutputs[data.path] || "") + data.content,
+              }));
+
+              // Reset buffer after successful parse
+              jsonBuffer = "";
+            } catch (error) {
+              // If we can't parse yet, we might need more lines
+              console.log("Not yet complete JSON", error);
+            }
           }
-          return {
-            name,
-            value: String(value),
-          };
-        });
-
-        const run = { ...runStatus, inputs };
-
-        const updatedApp = {
-          ...app,
-          versions: app.versions.map((v) =>
-            v.version === currentVersion?.version
-              ? { ...v, runs: [...v.runs, run] }
-              : v,
-          ),
-        };
-
-        updateApp(updatedApp);
+        }
       }
-      if (runStatus.status === "RUNNING") {
-        // Continue polling after a short delay
-        setTimeout(() => pollRunStatus(runId, values), 1000);
-      }
-    } catch (error) {
-      console.error("Error polling run:", error);
-      setRunOutput({
-        status: "ERROR",
-        errors: [{ message: "Failed to fetch run status" }],
-      });
     }
   };
 
@@ -222,7 +221,7 @@ export function WordAppForm({
         <RunHistory
           currentVersion={currentVersion}
           setInputValues={setInputValues}
-          setRunOutput={setRunOutput}
+          setOutputs={setOutputs}
         />
         <h4 className="text-md font-semibold">Inputs:</h4>
       </div>
@@ -261,16 +260,14 @@ export function WordAppForm({
           ))}
           <Button
             type="submit"
-            disabled={
-              runOutput?.status === "RUNNING" || !form.formState.isValid
-            }
+            disabled={runStatus === "RUNNING" || !form.formState.isValid}
           >
-            {runOutput?.status === "RUNNING" ? (
+            {runStatus === "RUNNING" ? (
               <Loader2 className="animate-spin" />
             ) : (
               <Play className="h-4 w-4" />
             )}
-            {runOutput?.status === "RUNNING" ? "Running..." : "Run"}
+            {runStatus === "RUNNING" ? "Running..." : "Run"}
           </Button>
         </form>
       </Form>

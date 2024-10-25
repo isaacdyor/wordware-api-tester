@@ -14,7 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { AppWithVersions, Run } from "@/types/types";
+import type { AppWithVersions } from "@/types/types";
 
 import { ChevronDown, Info } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
@@ -34,7 +34,10 @@ export function WordApp({
   toggleOpen,
   updateApp,
 }: WordAppProps) {
-  const [runOutput, setRunOutput] = useState<Run | null>(null);
+  const [outputs, setOutputs] = useState<Record<string, string>>({});
+  const [runStatus, setRunStatus] = useState<
+    "COMPLETE" | "RUNNING" | "ERROR" | null
+  >(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const currentVersion = app.versions.find(
@@ -143,29 +146,14 @@ export function WordApp({
             <WordAppForm
               app={app}
               currentVersion={currentVersion}
-              setRunOutput={setRunOutput}
+              setOutputs={setOutputs}
+              setRunStatus={setRunStatus}
               updateApp={updateApp}
-              runOutput={runOutput}
+              runStatus={runStatus}
             />
 
-            {runOutput && runOutput.status !== "RUNNING" && (
-              <div className="mt-4">
-                {runOutput.status === "COMPLETE" && runOutput.outputs && (
-                  <Output runOutputs={runOutput.outputs} />
-                )}
-                {runOutput.status === "ERROR" && runOutput.errors && (
-                  <div>
-                    <h5 className="font-semibold text-destructive">Errors:</h5>
-                    <ul className="mt-2 list-disc pl-5">
-                      {runOutput.errors.map((error, index) => (
-                        <li key={index} className="text-destructive">
-                          {error.message}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
+            {runStatus !== "ERROR" && Object.keys(outputs).length > 0 && (
+              <Output runOutputs={outputs} />
             )}
           </div>
         )}

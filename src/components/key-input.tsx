@@ -135,7 +135,6 @@ export function KeyInput({
 
   useEffect(() => {
     if (apiKey) {
-      console.log("fetching apps");
       fetchApps(apiKey);
     }
   }, [apiKey, fetchApps]);

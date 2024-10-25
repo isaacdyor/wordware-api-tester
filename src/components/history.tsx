@@ -14,11 +14,11 @@ import { History } from "lucide-react";
 export function RunHistory({
   currentVersion,
   setInputValues,
-  setRunOutput,
+  setOutputs,
 }: {
   currentVersion: VersionWithRuns;
   setInputValues: (values: Record<string, string>) => void;
-  setRunOutput: (run: Run | null) => void;
+  setOutputs: (outputs: Record<string, string>) => void;
 }) {
   const onClick = (run: RunWithInputs) => {
     if (!run.inputs) return;
@@ -30,7 +30,7 @@ export function RunHistory({
       },
       {},
     );
-    setRunOutput(run);
+    setOutputs(run.outputs || {});
     setInputValues(inputValues);
   };
 

@@ -32,10 +32,7 @@ export default function Home() {
     updateApps(updatedApps ?? null);
   };
 
-  // Early return with nothing if not client-side
   if (!isClient) return null;
-
-  console.log(apps);
 
   return (
     <div className="flex min-h-screen flex-col items-center py-8">

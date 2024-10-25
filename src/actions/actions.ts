@@ -3,8 +3,8 @@
 import {
   App,
   AppSchema,
-  AppVersion,
-  AppVersionSchema,
+  Version,
+  VersionSchema,
   RunResponseSchema,
 } from "@/types/types";
 import { z } from "zod";
@@ -33,7 +33,7 @@ export async function fetchAppVersions(
   apiKey: string,
   orgSlug: string,
   appSlug: string,
-): Promise<AppVersion[]> {
+): Promise<Version[]> {
   try {
     const response = await fetch(
       `https://api.wordware.ai/v1alpha/apps/${orgSlug}/${appSlug}/versions`,
@@ -49,7 +49,7 @@ export async function fetchAppVersions(
     }
 
     const data = await response.json();
-    return z.array(AppVersionSchema).parse(data);
+    return z.array(VersionSchema).parse(data);
   } catch (error) {
     console.error("Error fetching app versions:", error);
     throw error;

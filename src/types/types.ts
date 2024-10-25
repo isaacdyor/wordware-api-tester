@@ -15,7 +15,7 @@ export const InputSchema = z.object({
   description: z.string().optional(),
 });
 
-export const AppVersionSchema = z.object({
+export const VersionSchema = z.object({
   title: z.string(),
   description: z.string(),
   version: z.string(),
@@ -35,22 +35,19 @@ export const RunSchema = z.object({
 });
 
 export type App = z.infer<typeof AppSchema>;
-export type AppVersion = z.infer<typeof AppVersionSchema>;
+export type Version = z.infer<typeof VersionSchema>;
 export type Run = z.infer<typeof RunSchema>;
-
-export type VersionInput = z.infer<typeof InputSchema>;
 
 export type RunInput = {
   name: string;
   value: string;
-  label?: string;
 };
 
 export type RunWithInputs = Run & {
   inputs: RunInput[];
 };
 
-export type VersionWithRuns = AppVersion & {
+export type VersionWithRuns = Version & {
   runs: RunWithInputs[];
 };
 

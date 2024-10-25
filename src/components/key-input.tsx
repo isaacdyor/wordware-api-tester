@@ -69,10 +69,15 @@ export function KeyInput({
 
             const versionsSorted = versions.reverse();
 
+            // Find existing app to check for selected version
+            const existingApp = appsRef.current?.find(
+              (a) => a.appSlug === app.appSlug,
+            );
+
             const versionWithRuns = versionsSorted.map((version) => {
-              const existingVersion = appsRef.current
-                ?.find((a) => a.appSlug === app.appSlug)
-                ?.versions.find((v) => v.version === version.version);
+              const existingVersion = existingApp?.versions.find(
+                (v) => v.version === version.version,
+              );
               if (existingVersion) {
                 return {
                   ...version,
@@ -86,10 +91,22 @@ export function KeyInput({
               }
             });
 
+            // Determine selected version
+            let selectedVersion = versionsSorted[0]?.version || "";
+            if (existingApp?.selectedVersion) {
+              // Check if the previously selected version still exists
+              const versionStillExists = versionsSorted.some(
+                (v) => v.version === existingApp.selectedVersion,
+              );
+              if (versionStillExists) {
+                selectedVersion = existingApp.selectedVersion;
+              }
+            }
+
             appsWithVersions.push({
               ...app,
               versions: versionWithRuns,
-              selectedVersion: versionsSorted[0]?.version || "",
+              selectedVersion,
             });
           } catch (versionError) {
             console.error(
@@ -133,11 +150,11 @@ export function KeyInput({
     }
   };
 
-  // useEffect(() => {
-  //   if (apiKey) {
-  //     fetchApps(apiKey);
-  //   }
-  // }, [apiKey, fetchApps]);
+  useEffect(() => {
+    if (apiKey) {
+      fetchApps(apiKey);
+    }
+  }, [apiKey, fetchApps]);
 
   return (
     <div className="flex w-full flex-col gap-1">

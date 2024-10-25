@@ -133,11 +133,11 @@ export function KeyInput({
     }
   };
 
-  useEffect(() => {
-    if (apiKey) {
-      fetchApps(apiKey);
-    }
-  }, [apiKey, fetchApps]);
+  // useEffect(() => {
+  //   if (apiKey) {
+  //     fetchApps(apiKey);
+  //   }
+  // }, [apiKey, fetchApps]);
 
   return (
     <div className="flex w-full flex-col gap-1">

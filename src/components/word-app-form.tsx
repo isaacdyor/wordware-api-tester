@@ -19,15 +19,15 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { FileUpload } from "./file-upload";
 import { RunHistory } from "./history";
+import { useRef } from "react";
 
 interface WordAppFormProps {
   currentVersion: VersionWithRuns;
-  setOutputs: (outputs: Record<string, string>) => void;
+  setOutputs: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   runStatus: "COMPLETE" | "RUNNING" | "ERROR" | null;
   setRunStatus: (status: "COMPLETE" | "RUNNING" | "ERROR" | null) => void;
   app: AppWithVersions;
   updateApp: (newApp: AppWithVersions) => void;
-  outputs: Record<string, string>;
 }
 
 export function WordAppForm({
@@ -37,9 +37,9 @@ export function WordAppForm({
   app,
   updateApp,
   runStatus,
-  outputs,
 }: WordAppFormProps) {
   const { apiKey } = useLocal();
+  const latestOutputsRef = useRef<Record<string, string>>({});
 
   const createFormSchema = () => {
     if (!currentVersion) return z.object({});
@@ -193,8 +193,14 @@ export function WordAppForm({
           };
         });
 
-        const run = { outputs, inputs, runTime: new Date().toISOString() };
+        // Store the final outputs in the ref
+        const run = {
+          outputs: latestOutputsRef.current,
+          inputs,
+          runTime: new Date().toISOString(),
+        };
 
+        // Update app with the new run
         const updatedApp = {
           ...app,
           versions: app.versions.map((v) =>
@@ -208,11 +214,9 @@ export function WordAppForm({
         break;
       }
 
-      // Decode the chunk and split by lines
       const chunk = decoder.decode(value, { stream: true });
       const lines = chunk.split("\n");
 
-      // Process each line
       for (const line of lines) {
         if (line.startsWith("data: ")) {
           jsonBuffer += line.slice(6);
@@ -220,16 +224,18 @@ export function WordAppForm({
             try {
               const data = JSON.parse(jsonBuffer);
 
-              // Update outputs by appending content to existing path or creating new one
-              setOutputs((prevOutputs) => ({
-                ...prevOutputs,
-                [data.path]: (prevOutputs[data.path] || "") + data.content,
-              }));
+              // Update the ref instead of state directly
+              latestOutputsRef.current = {
+                ...latestOutputsRef.current,
+                [data.path]:
+                  (latestOutputsRef.current[data.path] || "") + data.content,
+              };
 
-              // Reset buffer after successful parse
+              // Update the state with the new outputs
+              setOutputs(latestOutputsRef.current);
+
               jsonBuffer = "";
             } catch (error) {
-              // If we can't parse yet, we might need more lines
               console.log("Not yet complete JSON", error);
             }
           }

@@ -36,7 +36,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col items-center py-8">
-      <div className="w-full max-w-2xl space-y-4">
+      <div className="w-full max-w-3xl space-y-4">
         <div className="flex w-full items-start gap-4">
           <div className="flex items-center gap-2">
             {apps !== null && (

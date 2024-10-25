@@ -150,7 +150,6 @@ export function WordApp({
               setRunStatus={setRunStatus}
               updateApp={updateApp}
               runStatus={runStatus}
-              outputs={outputs}
             />
 
             {runStatus !== "ERROR" && Object.keys(outputs).length > 0 && (

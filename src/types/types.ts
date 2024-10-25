@@ -29,10 +29,9 @@ export const RunResponseSchema = z.object({
 });
 
 export const RunSchema = z.object({
-  status: z.enum(["RUNNING", "COMPLETE", "ERROR"]),
   outputs: z.record(z.unknown()).optional(),
   errors: z.array(z.object({ message: z.string() })).optional(),
-  startTime: z.string().optional(),
+  runTime: z.string().optional(),
 });
 
 export type App = z.infer<typeof AppSchema>;

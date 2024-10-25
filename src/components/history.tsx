@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { RunInput, Run, RunWithInputs, VersionWithRuns } from "@/types/types";
+import { RunInput, RunWithInputs, VersionWithRuns } from "@/types/types";
 
 import { History } from "lucide-react";
 
@@ -30,7 +30,8 @@ export function RunHistory({
       },
       {},
     );
-    setOutputs(run.outputs || {});
+    console.log(inputValues);
+    setOutputs(run.outputs as Record<string, string>);
     setInputValues(inputValues);
   };
 
@@ -46,11 +47,9 @@ export function RunHistory({
         <DropdownMenuSeparator />
         {currentVersion.runs.length > 0 ? (
           [...currentVersion.runs].reverse().map((run) => (
-            <DropdownMenuItem key={run.startTime} onClick={() => onClick(run)}>
+            <DropdownMenuItem key={run.runTime} onClick={() => onClick(run)}>
               <span className="flex-1">
-                {run.startTime
-                  ? new Date(run.startTime).toLocaleString()
-                  : "N/A"}
+                {run.runTime ? new Date(run.runTime).toLocaleString() : "N/A"}
               </span>
             </DropdownMenuItem>
           ))

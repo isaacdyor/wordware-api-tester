@@ -27,6 +27,7 @@ interface WordAppFormProps {
   setRunStatus: (status: "COMPLETE" | "RUNNING" | "ERROR" | null) => void;
   app: AppWithVersions;
   updateApp: (newApp: AppWithVersions) => void;
+  outputs: Record<string, string>;
 }
 
 export function WordAppForm({
@@ -36,6 +37,7 @@ export function WordAppForm({
   app,
   updateApp,
   runStatus,
+  outputs,
 }: WordAppFormProps) {
   const { apiKey } = useLocal();
 
@@ -132,8 +134,6 @@ export function WordAppForm({
         >,
       );
 
-      console.log(formattedValues);
-
       const runId = await startRun(
         apiKey,
         currentVersion.version,
@@ -169,6 +169,42 @@ export function WordAppForm({
 
       if (done) {
         setRunStatus("COMPLETE");
+        const inputs = Object.entries(values).map(([name, value]) => {
+          const input = currentVersion.inputs.find((i) => i.name === name);
+          if (
+            input &&
+            (input.type === "image" ||
+              input.type === "audio" ||
+              input.type === "file")
+          ) {
+            const fileValue = value as { url: string; fileName: string };
+            return {
+              name,
+              value: JSON.stringify({
+                url: fileValue.url,
+                fileName: fileValue.fileName,
+                type: input.type,
+              }),
+            };
+          }
+          return {
+            name,
+            value: String(value),
+          };
+        });
+
+        const run = { outputs, inputs, runTime: new Date().toISOString() };
+
+        const updatedApp = {
+          ...app,
+          versions: app.versions.map((v) =>
+            v.version === currentVersion?.version
+              ? { ...v, runs: [...v.runs, run] }
+              : v,
+          ),
+        };
+
+        updateApp(updatedApp);
         break;
       }
 
@@ -209,8 +245,7 @@ export function WordAppForm({
         FormSchema[keyof FormSchema],
       ][]
     ).forEach(([key, value]) => {
-      const parsedValue = JSON.parse(value);
-      form.setValue(key, parsedValue as FormSchema[keyof FormSchema]);
+      form.setValue(key, value as FormSchema[keyof FormSchema]);
     });
     console.log(form.getValues());
   };
@@ -258,10 +293,7 @@ export function WordAppForm({
               )}
             />
           ))}
-          <Button
-            type="submit"
-            disabled={runStatus === "RUNNING" || !form.formState.isValid}
-          >
+          <Button type="submit" disabled={runStatus === "RUNNING"}>
             {runStatus === "RUNNING" ? (
               <Loader2 className="animate-spin" />
             ) : (

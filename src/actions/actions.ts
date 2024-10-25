@@ -5,9 +5,7 @@ import {
   AppSchema,
   AppVersion,
   AppVersionSchema,
-  Run,
   RunResponseSchema,
-  RunSchema,
 } from "@/types/types";
 import { z } from "zod";
 
@@ -96,29 +94,4 @@ export async function startRun(
     console.error("Error starting run:", error);
     throw error;
   }
-}
-
-export async function pollRun(apiKey: string, runId: string): Promise<Run> {
-  try {
-    const response = await fetch(
-      `https://api.wordware.ai/v1alpha/runs/${runId}`,
-      {
-        headers: { Authorization: `Bearer ${apiKey}` },
-      },
-    );
-
-    if (!response.ok) throw new Error("Failed to fetch run status");
-
-    const data = await response.json();
-    return RunSchema.parse(data);
-  } catch (error) {
-    console.error("Error polling run:", error);
-    throw error;
-  }
-}
-
-export async function uploadFile(file: File): Promise<string> {
-  return await new Promise((resolve) => {
-    resolve(file.name);
-  });
 }

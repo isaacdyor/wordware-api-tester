@@ -20,7 +20,6 @@ export default function Home() {
   const [isFetching, setIsFetching] = useState(true);
   const [isClient, setIsClient] = useState(false);
 
-  // useLayoutEffect runs before browser paint, reducing potential flicker
   useLayoutEffect(() => {
     setIsClient(true);
   }, []);

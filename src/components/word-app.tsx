@@ -72,7 +72,7 @@ export function WordApp({
           <h3 className="text-lg font-semibold">
             {currentVersion?.title || app.appSlug}
           </h3>
-          <TooltipProvider delayDuration={0}>
+          <TooltipProvider delayDuration={100}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Info className="h-4 w-4" />

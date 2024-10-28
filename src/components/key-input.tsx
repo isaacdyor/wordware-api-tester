@@ -25,6 +25,7 @@ export function KeyInput({
   apps,
   setIsFetching,
 }: KeyInputProps) {
+  const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 

@@ -1,6 +1,9 @@
 "use client";
 
 import { KeyInput } from "@/components/key-input";
+import { Logo } from "@/components/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -11,6 +14,7 @@ import { WordApp } from "@/components/word-app";
 import { useLocal } from "@/hooks/useLocal";
 import { cn } from "@/lib/utils";
 import { AppWithVersions } from "@/types/types";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useLayoutEffect, useState } from "react";
 
@@ -34,31 +38,10 @@ export default function Home() {
   if (!isClient) return null;
 
   return (
-    <div className="flex min-h-screen flex-col items-center py-8">
-      <div className="w-full max-w-3xl space-y-4">
-        <div className="flex w-full items-start gap-4">
-          <div className="flex items-center gap-2">
-            {apps !== null && (
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div
-                      className={cn(
-                        "h-2 w-2 rounded-full bg-green-500",
-                        isFetching && "animate-pulse bg-yellow-500",
-                      )}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {isFetching
-                      ? "Checking for new versions..."
-                      : "All apps are up to date"}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            <h2 className="whitespace-nowrap text-2xl font-bold">Word Apps:</h2>
-          </div>
+    <div className="flex h-screen flex-col">
+      <div className="flex h-14 items-center justify-between border-b p-3">
+        <Logo className="size-32" />
+        <div className="flex items-center gap-2">
           <KeyInput
             apiKey={apiKey}
             updateApiKey={updateApiKey}
@@ -66,54 +49,48 @@ export default function Home() {
             apps={apps}
             setIsFetching={setIsFetching}
           />
+          <ThemeToggle />
         </div>
-        {apps && apps.length > 0 ? (
-          <ul className="space-y-2">
-            {apps.map((app) => {
-              const key = `${app.orgSlug}/${app.appSlug}`;
-              return (
-                <WordApp
-                  key={key}
-                  app={app}
-                  isOpened={openedApp === key}
-                  toggleOpen={() =>
-                    setOpenedApp(openedApp === key ? null : key)
-                  }
-                  updateApp={updateApp}
-                />
-              );
-            })}
-          </ul>
-        ) : (
-          apps !== null && (
-            <div className="flex w-full items-center justify-center py-48">
-              <div className="flex max-w-sm flex-col items-center gap-4">
-                <p className="text-center text-xl font-semibold">
-                  No apps found.
-                </p>
-                <p className="text-center text-muted-foreground">
-                  Visit the{" "}
-                  <Link
-                    className="text-blue-500 hover:underline"
-                    href="https://app.wordware.ai/"
-                    target="_blank"
-                  >
-                    Wordware dashboard
-                  </Link>{" "}
-                  to create an app or explore examples on the{" "}
-                  <Link
-                    className="text-blue-500 hover:underline"
-                    href="https://app.wordware.ai/explore"
-                    target="_blank"
-                  >
-                    Explore page
-                  </Link>
-                  .
-                </p>
-              </div>
+      </div>
+      <div className="flex h-full">
+        <div className="w-64 border-r">
+          <div className="mb-2 border-b p-2">
+            <Link
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "flex w-full gap-2",
+              )}
+              href="https://app.wordware.ai/"
+            >
+              <Plus /> Create App
+            </Link>
+          </div>
+        </div>
+        <div className="flex-1 border-b">
+          <div className="flex w-full items-start gap-4 border-b p-2">
+            <div className="flex items-center gap-2">
+              {apps !== null && (
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        className={cn(
+                          "h-2 w-2 rounded-full bg-green-500",
+                          isFetching && "animate-pulse bg-yellow-500",
+                        )}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {isFetching
+                        ? "Checking for new versions..."
+                        : "All apps are up to date"}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
-          )
-        )}
+          </div>
+        </div>
       </div>
     </div>
   );

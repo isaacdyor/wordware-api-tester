@@ -183,6 +183,7 @@ export function KeyInput({
                       type="submit"
                       size="icon"
                       className="rounded-l-none px-2"
+                      variant="secondary"
                     >
                       {isSubmitting ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

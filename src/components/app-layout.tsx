@@ -3,14 +3,13 @@
 import { KeyInput } from "@/components/key-input";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { WordApp } from "@/components/word-app";
 import { useLocal } from "@/hooks/useLocal";
 import { cn } from "@/lib/utils";
 import { AppWithVersions } from "@/types/types";
@@ -18,29 +17,27 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 
 import { useLayoutEffect, useState } from "react";
-import NavBreadcrumb from "./nav-breadcrumb";
+import { NavBreadcrumb } from "./nav-breadcrumb";
+import { useParams } from "next/navigation";
 
 interface AppLayoutProps {
   children: React.ReactNode;
-  params: { appSlug: string };
-  searchParams: { [key: string]: string | string[] | undefined };
 }
 
-export default function AppLayout({
-  children,
-  params,
-  searchParams,
-}: AppLayoutProps) {
+export function AppLayout({ children }: AppLayoutProps) {
   const { apps, updateApps, updateApiKey, apiKey } = useLocal();
-  const [openedApp, setOpenedApp] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(true);
   const [isClient, setIsClient] = useState(false);
+  const params = useParams<{ appSlug: string }>();
 
   useLayoutEffect(() => {
     setIsClient(true);
   }, []);
 
-  const name = searchParams?.name as string;
+  const appSlug = params.appSlug;
+  const app = apps?.find((app) => {
+    return app.appSlug === appSlug;
+  });
 
   const updateApp = (app: AppWithVersions) => {
     const updatedApps = apps?.map((currentApp) =>
@@ -81,7 +78,7 @@ export default function AppLayout({
           </div>
         </div>
         <div className="flex w-full flex-col border-b">
-          <div className="flex w-full items-center gap-4 border-b p-4">
+          <div className="flex w-full items-center gap-4 border-b px-4 py-2">
             <div className="flex items-center gap-2">
               {apps !== null && (
                 <TooltipProvider delayDuration={0}>
@@ -103,9 +100,9 @@ export default function AppLayout({
                 </TooltipProvider>
               )}
             </div>
-            <NavBreadcrumb name={name} />
+            <NavBreadcrumb app={app ?? null} updateApp={updateApp} />
           </div>
-          {children}
+          <div className="p-4">{children}</div>
         </div>
       </div>
     </div>

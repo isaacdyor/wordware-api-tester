@@ -10,10 +10,9 @@ export default function AppsPage() {
   return (
     <>
       {apps && apps.length > 0 ? (
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {apps.map((app) => {
-            const key = `${app.orgSlug}/${app.appSlug}`;
-            return <WordApp key={key} app={app} />;
+            return <WordApp key={`${app.orgSlug}/${app.appSlug}`} app={app} />;
           })}
         </ul>
       ) : (

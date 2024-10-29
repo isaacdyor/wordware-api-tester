@@ -19,11 +19,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { timeAgo } from "@/lib/utils";
 
-interface WordAppDetailProps {
+interface WordAppCardProps {
   app: AppWithVersions;
 }
 
-export function WordAppDetail({ app }: WordAppDetailProps) {
+export function WordAppCard({ app }: WordAppCardProps) {
   const currentVersion = app.versions[0];
 
   return (

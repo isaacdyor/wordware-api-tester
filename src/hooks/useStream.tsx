@@ -1,32 +1,23 @@
 import { startRun } from "@/actions/actions";
-import { AppWithVersions, VersionWithRuns } from "@/types/types";
+import { useLocalStore } from "@/stores/useLocalStore";
 import { useRef } from "react";
 
 type RunStatus = "COMPLETE" | "RUNNING" | "ERROR" | null;
 
 interface UseStreamProps {
-  apiKey: string;
-  currentVersion: VersionWithRuns;
-  app: AppWithVersions;
-  updateApp: (newApp: AppWithVersions) => void;
   setOutputs: (outputs: Record<string, string>) => void;
   setRunStatus: (runStatus: RunStatus) => void;
 }
 
-export function useStream({
-  apiKey,
-  currentVersion,
-  app,
-  updateApp,
-  setOutputs,
-  setRunStatus,
-}: UseStreamProps) {
+export function useStream({ setOutputs, setRunStatus }: UseStreamProps) {
   const latestOutputsRef = useRef<Record<string, string>>({});
+  const { apiKey, updateApp, currentApp, currentVersion } = useLocalStore();
 
   const streamRunOutput = async (
     runId: string,
     values: Record<string, unknown>,
   ) => {
+    if (!currentApp) throw new Error("No current app");
     const response = await fetch(`/api/stream/${runId}`, {
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -48,7 +39,7 @@ export function useStream({
       if (done) {
         setRunStatus("COMPLETE");
         const inputs = Object.entries(values).map(([name, value]) => {
-          const input = currentVersion.inputs.find((i) => i.name === name);
+          const input = currentVersion?.inputs.find((i) => i.name === name);
           if (
             input &&
             (input.type === "image" ||
@@ -78,10 +69,10 @@ export function useStream({
         };
 
         const updatedApp = {
-          ...app,
-          versions: app.versions.map((v) =>
+          ...currentApp,
+          versions: currentApp?.versions.map((v) =>
             v.version === currentVersion?.version
-              ? { ...v, runs: [...v.runs, run] }
+              ? { ...v, runs: [...(v.runs || []), run] }
               : v,
           ),
         };
@@ -110,7 +101,7 @@ export function useStream({
 
               jsonBuffer = "";
             } catch (error) {
-              console.log("Not yet complete JSON", error);
+              console.error("Not yet complete JSON", error);
             }
           }
         }
@@ -119,6 +110,7 @@ export function useStream({
   };
 
   const handleStartRun = async (values: Record<string, unknown>) => {
+    if (!currentApp) throw new Error("No current app");
     try {
       setRunStatus("RUNNING");
       setOutputs({});
@@ -163,8 +155,8 @@ export function useStream({
         apiKey,
         currentVersion.version,
         formattedValues,
-        app.orgSlug,
-        app.appSlug,
+        currentApp.orgSlug,
+        currentApp.appSlug,
       );
       streamRunOutput(runId, values);
     } catch (error) {

@@ -10,22 +10,22 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useLocal } from "@/hooks/useLocal";
 import { cn } from "@/lib/utils";
 import { AppWithVersions } from "@/types/types";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 
+import { useLocalStore } from "@/stores/useLocalStore";
+import { useParams } from "next/navigation";
 import { useLayoutEffect, useState } from "react";
 import { NavBreadcrumb } from "./nav-breadcrumb";
-import { useParams } from "next/navigation";
 
 interface AppLayoutProps {
   children: React.ReactNode;
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const { apps, updateApps, updateApiKey, apiKey } = useLocal();
+  const { apps, updateApps, updateApiKey, apiKey } = useLocalStore();
   const [isFetching, setIsFetching] = useState(true);
   const [isClient, setIsClient] = useState(false);
   const params = useParams<{ appSlug: string }>();

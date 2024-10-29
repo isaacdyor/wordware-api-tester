@@ -59,8 +59,6 @@ export function AudioRecording({ field }: AudioRecordingProps) {
           type: "audio/webm",
         });
 
-        console.log("Recording saved:", file);
-
         // Upload the file using Vercel Blob
         try {
           setIsUploading(true);
@@ -78,7 +76,6 @@ export function AudioRecording({ field }: AudioRecordingProps) {
               url,
               fileName: file.name,
             });
-            console.log("Audio uploaded successfully!");
           } else {
             const error = await response.text();
             console.error("Error uploading audio:", error);

@@ -13,14 +13,13 @@ import { useCurrentVersion } from "@/stores/useLocalStore";
 import { FormSchema } from "@/types/form";
 import { Loader2, Play } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
-import * as z from "zod";
 import { FileUpload } from "./file-upload";
 
 interface WordAppFormProps {
   setOutputs: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   runStatus: "COMPLETE" | "RUNNING" | "ERROR" | null;
   setRunStatus: (status: "COMPLETE" | "RUNNING" | "ERROR" | null) => void;
-  form: UseFormReturn<z.infer<typeof FormSchema>>;
+  form: UseFormReturn<FormSchema>;
 }
 
 export function WordAppForm({

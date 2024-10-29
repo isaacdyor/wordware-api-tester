@@ -1,9 +1,7 @@
 import * as z from "zod";
 import { VersionWithRuns } from "@/types/types";
 
-export const createFormSchema = (
-  currentVersion: VersionWithRuns | undefined,
-) => {
+export const createFormSchema = (currentVersion: VersionWithRuns | null) => {
   if (!currentVersion) return z.object({});
 
   const schemaFields = currentVersion.inputs.reduce(

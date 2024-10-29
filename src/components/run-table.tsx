@@ -37,7 +37,6 @@ export function RunTable({
       },
       {},
     );
-    console.log(inputValues);
     setOutputs(run.outputs as Record<string, string>);
     setInputValues(inputValues);
     setTab("playground");

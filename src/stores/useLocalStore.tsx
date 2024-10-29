@@ -1,4 +1,4 @@
-import { AppWithVersions, Version } from "@/types/types";
+import { AppWithVersions, Version, VersionWithRuns } from "@/types/types";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -6,11 +6,12 @@ export const useLocalStore = () => {
   const [apps, setApps] = useState<AppWithVersions[] | null>(null);
   const [apiKey, setApiKey] = useState<string>("");
   const [currentApp, setCurrentApp] = useState<AppWithVersions | null>(null);
-  const [currentVersion, setCurrentVersion] = useState<Version | null>(null);
+  const [currentVersion, setCurrentVersion] = useState<VersionWithRuns | null>(
+    null,
+  );
 
   const params = useParams<{ appSlug: string }>();
 
-  // Initial load from localStorage - only for apps and apiKey
   useEffect(() => {
     const storedApps = localStorage.getItem("apps");
     const parsedApps = storedApps ? JSON.parse(storedApps) : null;
@@ -21,10 +22,8 @@ export const useLocalStore = () => {
     );
 
     const version = app?.versions.find(
-      (version: Version) => version.version === currentVersion?.version,
+      (version: Version) => version.version === app?.selectedVersion,
     );
-
-    console.log(version);
 
     if (storedApps) setApps(parsedApps);
     if (storedApiKey) setApiKey(storedApiKey);

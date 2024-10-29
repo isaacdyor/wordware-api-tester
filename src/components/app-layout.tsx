@@ -93,7 +93,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     </TooltipTrigger>
                     <TooltipContent>
                       {isFetching
-                        ? "Checking for new versions..."
+                        ? "Checking for updates..."
                         : "All apps are up to date"}
                     </TooltipContent>
                   </Tooltip>

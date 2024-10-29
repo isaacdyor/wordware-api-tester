@@ -6,14 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WordAppForm } from "@/components/word-app-form";
 import { useLocalStore } from "@/stores/useLocalStore";
 import { createFormSchema, FormSchema } from "@/types/form";
-import { AppWithVersions } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 export default function AppDetail() {
-  const { apps, updateApps } = useLocalStore();
+  const { currentApp, currentVersion } = useLocalStore();
   const [outputs, setOutputs] = useState<Record<string, string>>({});
   const [tab, setTab] = useState<"playground" | "api" | "previous-runs">(
     "playground",
@@ -22,34 +20,29 @@ export default function AppDetail() {
     "COMPLETE" | "RUNNING" | "ERROR" | null
   >(null);
 
-  const params = useParams<{ appSlug: string }>();
-  const currentApp = apps?.find((app) => app.appSlug === params.appSlug);
-  const currentVersion = currentApp?.versions.find(
-    (version) => version.version === currentApp?.selectedVersion,
-  );
-
-  const updateApp = (app: AppWithVersions) => {
-    const updatedApps = apps?.map((currentApp) =>
-      currentApp.appSlug === app.appSlug ? app : currentApp,
-    );
-    updateApps(updatedApps ?? null);
-  };
-
   const form = useForm<FormSchema>({
     resolver: zodResolver(createFormSchema(currentVersion)),
-    defaultValues: currentVersion?.inputs.reduce(
-      (acc, input) => {
-        acc[input.name] =
-          input.type === "image" ||
-          input.type === "audio" ||
-          input.type === "file"
-            ? null
-            : "";
-        return acc;
-      },
-      {} as Record<string, string | null>,
-    ),
+    defaultValues: {},
   });
+
+  useEffect(() => {
+    if (currentVersion) {
+      const defaultValues = currentVersion.inputs.reduce(
+        (acc, input) => {
+          acc[input.name] =
+            input.type === "image" ||
+            input.type === "audio" ||
+            input.type === "file"
+              ? null
+              : "";
+          return acc;
+        },
+        {} as Record<string, string | null>,
+      );
+
+      form.reset(defaultValues);
+    }
+  }, [currentVersion, form]);
 
   const setInputValues = (values: Partial<FormSchema>) => {
     (
@@ -88,11 +81,8 @@ export default function AppDetail() {
         <TabsContent value="playground" className="flex flex-1 overflow-hidden">
           <div className="flex h-full w-full gap-4">
             <WordAppForm
-              app={currentApp}
-              currentVersion={currentVersion}
               setOutputs={setOutputs}
               setRunStatus={setRunStatus}
-              updateApp={updateApp}
               runStatus={runStatus}
               form={form}
             />

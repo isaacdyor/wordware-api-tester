@@ -1,6 +1,6 @@
 "use client";
 
-import { WordApp } from "@/components/word-app";
+import { WordAppDetail } from "@/components/word-app-detail";
 import { useLocal } from "@/hooks/useLocal";
 import Link from "next/link";
 
@@ -12,7 +12,9 @@ export default function AppsPage() {
       {apps && apps.length > 0 ? (
         <ul className="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {apps.map((app) => {
-            return <WordApp key={`${app.orgSlug}/${app.appSlug}`} app={app} />;
+            return (
+              <WordAppDetail key={`${app.orgSlug}/${app.appSlug}`} app={app} />
+            );
           })}
         </ul>
       ) : (

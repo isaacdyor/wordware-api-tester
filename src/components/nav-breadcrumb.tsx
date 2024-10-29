@@ -24,7 +24,6 @@ export function NavBreadcrumb({
   updateApp: (app: AppWithVersions) => void;
 }) {
   const pathname = usePathname();
-  const currentVersion = app?.versions[0];
 
   const sortedVersions = app?.versions.sort((a, b) => {
     const [aMajor, aMinor] = a.version.split(".").map(Number);
@@ -32,6 +31,10 @@ export function NavBreadcrumb({
     if (bMajor !== aMajor) return bMajor - aMajor;
     return bMinor - aMinor;
   });
+
+  const currentVersion = sortedVersions?.find(
+    (version) => version.version === app?.selectedVersion,
+  );
 
   // If we're in an app route and have app data, show the full app breadcrumb
   if (pathname.startsWith("/apps/") && app) {

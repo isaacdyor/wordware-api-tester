@@ -63,8 +63,8 @@ export function AppLayout({ children }: AppLayoutProps) {
           <ThemeToggle />
         </div>
       </div>
-      <div className="flex h-full">
-        <div className="w-64 border-r">
+      <div className="flex flex-1 overflow-hidden">
+        <div className="w-64 overflow-y-auto border-r">
           <div className="mb-2 border-b p-2">
             <Link
               className={cn(
@@ -77,8 +77,8 @@ export function AppLayout({ children }: AppLayoutProps) {
             </Link>
           </div>
         </div>
-        <div className="flex w-full flex-col border-b">
-          <div className="flex w-full items-center gap-4 border-b px-4 py-2">
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex items-center gap-4 border-b px-4 py-2">
             <div className="flex items-center gap-2">
               {apps !== null && (
                 <TooltipProvider delayDuration={0}>
@@ -102,7 +102,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
             <NavBreadcrumb app={app ?? null} updateApp={updateApp} />
           </div>
-          <div className="p-4">{children}</div>
+          <div className="flex-1 overflow-y-auto p-6">{children}</div>
         </div>
       </div>
     </div>

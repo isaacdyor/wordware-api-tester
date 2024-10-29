@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import AppLayout from "@/components/app-layout";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -22,8 +23,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
+  params = {},
+  searchParams = {},
 }: Readonly<{
   children: React.ReactNode;
+  params?: Record<string, string>;
+  searchParams?: Record<string, string>;
 }>) {
   return (
     <html lang="en">
@@ -36,7 +41,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <AppLayout params={params} searchParams={searchParams}>
+            {children}
+          </AppLayout>
         </ThemeProvider>
       </body>
     </html>

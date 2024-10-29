@@ -1,7 +1,7 @@
 import { fetchAppVersions, fetchWordApps } from "@/actions/actions";
 import { AppWithVersions } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Save } from "lucide-react";
+import { Key, Loader2, Save, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -157,8 +157,12 @@ export function KeyInput({
     }
   }, [apiKey, fetchApps]);
 
-  return (
-    <div className="flex w-full flex-col gap-1">
+  return open ? (
+    <div className="flex w-full items-center gap-1">
+      <X
+        className="h-4 w-4 cursor-pointer rounded-md text-muted-foreground hover:text-foreground"
+        onClick={() => setOpen(false)}
+      />
       <Form {...form}>
         <form className="w-full" onSubmit={form.handleSubmit(onSubmit)}>
           <FormField
@@ -171,7 +175,7 @@ export function KeyInput({
                     <Input
                       disabled={isSubmitting}
                       placeholder="API Key"
-                      className="flex-grow rounded-r-none"
+                      className="w-[488px] rounded-r-none"
                       {...field}
                     />
                     <Button
@@ -195,18 +199,10 @@ export function KeyInput({
           />
         </form>
       </Form>
-      {apps === null && (
-        <p className="text-xs text-muted-foreground">
-          Go to your{" "}
-          <Link
-            className="text-blue-500 hover:underline"
-            href="https://app.wordware.ai/"
-          >
-            dashboard
-          </Link>{" "}
-          and go to the API tab of the settings find your key.
-        </p>
-      )}
     </div>
+  ) : (
+    <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+      <Key className="h-4 w-4 text-muted-foreground" />
+    </Button>
   );
 }

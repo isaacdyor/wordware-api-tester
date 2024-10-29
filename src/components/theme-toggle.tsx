@@ -15,7 +15,7 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       className={cn(
         buttonVariants({ variant: "ghost", size: "icon" }),
-        "hover:cursor-pointer",
+        "shrink-0 hover:cursor-pointer",
       )}
     >
       <Sun className="h-5 w-5 text-muted-foreground dark:hidden" />

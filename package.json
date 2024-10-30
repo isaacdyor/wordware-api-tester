@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lines": "find src \\( -name \"*.ts\" -o -name \"*.tsx\" \\) | xargs wc -l"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

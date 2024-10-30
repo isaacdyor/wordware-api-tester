@@ -14,6 +14,9 @@ export default function AppDetail() {
   const currentApp = useCurrentApp();
   const currentVersion = useCurrentVersion();
 
+  console.log("currentVersion", currentVersion);
+  console.log("currentApp", currentApp);
+
   const [tab, setTab] = useState<"playground" | "api" | "previous-runs">(
     "playground",
   );
@@ -35,7 +38,6 @@ export default function AppDetail() {
   });
 
   const setInputValues = (values: Partial<FormSchema>) => {
-    console.log(values);
     (
       Object.entries(values) as [
         keyof FormSchema,

@@ -146,11 +146,11 @@ export function KeyInput({ setIsFetching }: KeyInputProps) {
     }
   };
 
-  // useEffect(() => {
-  //   if (apiKey) {
-  //     fetchApps(apiKey);
-  //   }
-  // }, [apiKey, fetchApps]);
+  useEffect(() => {
+    if (apiKey) {
+      fetchApps(apiKey);
+    }
+  }, [apiKey, fetchApps]);
 
   return open ? (
     <div className="flex w-full items-center gap-1">

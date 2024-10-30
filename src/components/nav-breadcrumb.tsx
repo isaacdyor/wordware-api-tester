@@ -13,19 +13,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCurrentApp, useStoreActions } from "@/stores/store";
 import type { AppWithVersions } from "@/types/types";
 import { usePathname } from "next/navigation";
 
-export function NavBreadcrumb({
-  app,
-  updateApp,
-}: {
-  app: AppWithVersions | null;
-  updateApp: (app: AppWithVersions) => void;
-}) {
+export function NavBreadcrumb() {
   const pathname = usePathname();
+  const currentApp = useCurrentApp();
+  const { updateApp, setCurrentVersion } = useStoreActions();
 
-  const sortedVersions = app?.versions.sort((a, b) => {
+  const sortedVersions = currentApp?.versions.sort((a, b) => {
     const [aMajor, aMinor] = a.version.split(".").map(Number);
     const [bMajor, bMinor] = b.version.split(".").map(Number);
     if (bMajor !== aMajor) return bMajor - aMajor;
@@ -33,11 +30,11 @@ export function NavBreadcrumb({
   });
 
   const currentVersion = sortedVersions?.find(
-    (version) => version.version === app?.selectedVersion,
+    (version) => version.version === currentApp?.selectedVersion,
   );
 
   // If we're in an app route and have app data, show the full app breadcrumb
-  if (pathname.startsWith("/apps/") && app) {
+  if (pathname.startsWith("/apps/") && currentApp) {
     return (
       <Breadcrumb>
         <BreadcrumbList>
@@ -46,20 +43,22 @@ export function NavBreadcrumb({
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href={`/apps/${app.appSlug}`}>
+            <BreadcrumbLink href={`/apps/${currentApp.appSlug}`}>
               {currentVersion?.title}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbPage>
             <Select
-              value={app.selectedVersion}
-              onValueChange={(version) =>
+              value={currentApp?.selectedVersion}
+              onValueChange={(version) => {
                 updateApp({
-                  ...app,
+                  ...currentApp,
                   selectedVersion: version,
-                } as AppWithVersions)
-              }
+                } as AppWithVersions);
+
+                setCurrentVersion(version);
+              }}
             >
               <SelectTrigger className="border-none p-0 focus:ring-0">
                 <SelectValue placeholder="Select version" />

@@ -26,7 +26,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const apps = useApps();
-  const { updateApps, updateApiKey, setCurrentVersion, setCurrentApp } =
+  const { updateApps, updateApiKey, setCurrentVersion, setCurrentAppId } =
     useStoreActions();
 
   const [isFetching, setIsFetching] = useState(true);
@@ -37,6 +37,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     setIsClient(true);
   }, []);
 
+  // Sync data from local storage
   useEffect(() => {
     const storedApps = localStorage.getItem("apps");
     const parsedApps = storedApps ? JSON.parse(storedApps) : null;
@@ -52,27 +53,15 @@ export function AppLayout({ children }: AppLayoutProps) {
 
     if (storedApps) updateApps(parsedApps);
     if (storedApiKey) updateApiKey(storedApiKey);
-    if (app) setCurrentApp(app);
-    if (version) setCurrentVersion(version);
+    if (app) setCurrentAppId(app.appSlug);
+    if (version) setCurrentVersion(version.version);
   }, [
     params.appSlug,
-    setCurrentApp,
+    setCurrentAppId,
     setCurrentVersion,
     updateApiKey,
     updateApps,
   ]);
-
-  const appSlug = params.appSlug;
-  const app = apps?.find((app) => {
-    return app.appSlug === appSlug;
-  });
-
-  const updateApp = (app: AppWithVersions) => {
-    const updatedApps = apps?.map((currentApp) =>
-      currentApp.appSlug === app.appSlug ? app : currentApp,
-    );
-    updateApps(updatedApps ?? null);
-  };
 
   if (!isClient) return null;
 
@@ -122,7 +111,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </TooltipProvider>
               )}
             </div>
-            <NavBreadcrumb app={app ?? null} updateApp={updateApp} />
+            <NavBreadcrumb />
           </div>
           <div className="flex-1 overflow-y-auto p-6">{children}</div>
         </div>

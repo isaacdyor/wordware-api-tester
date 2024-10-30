@@ -1,17 +1,18 @@
 import { startRun } from "@/actions/actions";
-import { useLocalStore } from "@/stores/useLocalStore";
+import {
+  useApiKey,
+  useCurrentApp,
+  useCurrentVersion,
+  useStoreActions,
+} from "@/stores/store";
 import { useRef } from "react";
 
-type RunStatus = "COMPLETE" | "RUNNING" | "ERROR" | null;
-
-interface UseStreamProps {
-  setOutputs: (outputs: Record<string, string>) => void;
-  setRunStatus: (runStatus: RunStatus) => void;
-}
-
-export function useStream({ setOutputs, setRunStatus }: UseStreamProps) {
+export function useStream() {
   const latestOutputsRef = useRef<Record<string, string>>({});
-  const { apiKey, updateApp, currentApp, currentVersion } = useLocalStore();
+  const { updateApp, setRunStatus, setOutputs } = useStoreActions();
+  const apiKey = useApiKey();
+  const currentApp = useCurrentApp();
+  const currentVersion = useCurrentVersion();
 
   const streamRunOutput = async (
     runId: string,
@@ -96,7 +97,6 @@ export function useStream({ setOutputs, setRunStatus }: UseStreamProps) {
                 [data.path]:
                   (latestOutputsRef.current[data.path] || "") + data.content,
               };
-
               setOutputs(latestOutputsRef.current);
 
               jsonBuffer = "";

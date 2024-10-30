@@ -11,6 +11,9 @@ import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
+import { AskInput } from "./ask-input";
+import { useOutputs } from "@/stores/store";
+
 // Code block component with syntax highlighting and copy functionality
 const CodeBlock = ({
   inline,
@@ -148,13 +151,11 @@ const MarkdownComponents = {
   code: CodeBlock,
 };
 
-export function Output({
-  runOutputs,
-}: {
-  runOutputs: Record<string, unknown>;
-}) {
+export function Output() {
+  const runOutputs = useOutputs();
   const [jsonView, setJsonView] = useState(false);
   const [autoScroll, setAutoScroll] = useState(true);
+  const [showInput, setShowInput] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -198,29 +199,7 @@ export function Output({
 
   return (
     <Card className="flex h-full w-full">
-      <CardContent className="group relative flex-1 pr-1 pt-6">
-        <div
-          ref={scrollContainerRef}
-          className="scrollbar-w-0 h-full overflow-y-auto rounded-lg pr-5"
-        >
-          {jsonView ? (
-            <pre className="whitespace-pre-wrap break-words text-sm text-muted-foreground">
-              {JSON.stringify(runOutputs, null, 2)}
-            </pre>
-          ) : (
-            <div className="space-y-8">
-              {Object.entries(runOutputs).map(([key, value]) => (
-                <div key={key} className="flex flex-col gap-2">
-                  <h2 className="mb-2 text-3xl font-bold text-primary">
-                    {key}
-                  </h2>
-                  {renderValue(value)}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
+      <CardContent className="group relative flex flex-1 flex-col pr-1 pt-6">
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -242,6 +221,28 @@ export function Output({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+        <div
+          ref={scrollContainerRef}
+          className="scrollbar-w-0 flex-1 overflow-y-auto rounded-lg pr-5"
+        >
+          {jsonView ? (
+            <pre className="whitespace-pre-wrap break-words text-sm text-muted-foreground">
+              {JSON.stringify(runOutputs, null, 2)}
+            </pre>
+          ) : (
+            <div className="space-y-8">
+              {Object.entries(runOutputs).map(([key, value]) => (
+                <div key={key} className="flex flex-col gap-2">
+                  <h2 className="mb-2 text-3xl font-bold text-primary">
+                    {key}
+                  </h2>
+                  {renderValue(value)}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        {showInput && !jsonView && <AskInput />}
       </CardContent>
     </Card>
   );

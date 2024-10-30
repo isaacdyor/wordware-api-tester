@@ -9,29 +9,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useStream } from "@/hooks/useStream";
-import { useCurrentVersion } from "@/stores/useLocalStore";
+import { useCurrentVersion, useRunStatus } from "@/stores/store";
 import { FormSchema } from "@/types/form";
 import { Loader2, Play } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { FileUpload } from "./file-upload";
 
 interface WordAppFormProps {
-  setOutputs: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  runStatus: "COMPLETE" | "RUNNING" | "ERROR" | null;
-  setRunStatus: (status: "COMPLETE" | "RUNNING" | "ERROR" | null) => void;
   form: UseFormReturn<FormSchema>;
 }
 
-export function WordAppForm({
-  setOutputs,
-  setRunStatus,
-  runStatus,
-  form,
-}: WordAppFormProps) {
-  const { handleStartRun } = useStream({
-    setOutputs,
-    setRunStatus,
-  });
+export function WordAppForm({ form }: WordAppFormProps) {
+  const runStatus = useRunStatus();
+
+  const { handleStartRun } = useStream();
   const currentVersion = useCurrentVersion();
 
   return (

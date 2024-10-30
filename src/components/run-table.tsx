@@ -7,22 +7,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { timeAgo } from "@/lib/utils";
-import { useLocalStore } from "@/stores/useLocalStore";
+import { useApps, useStoreActions } from "@/stores/store";
 import { RunInput, RunWithInputs } from "@/types/types";
 import { useParams } from "next/navigation";
 
 interface RunTableProps {
   setInputValues: (inputValues: Record<string, string>) => void;
-  setOutputs: (outputs: Record<string, string>) => void;
   setTab: (tab: "playground" | "api" | "previous-runs") => void;
 }
 
-export function RunTable({
-  setInputValues,
-  setOutputs,
-  setTab,
-}: RunTableProps) {
-  const { apps } = useLocalStore();
+export function RunTable({ setInputValues, setTab }: RunTableProps) {
+  const { setOutputs } = useStoreActions();
+  const apps = useApps();
   const params = useParams<{ appSlug: string }>();
   const currentApp = apps?.find((app) => app.appSlug === params.appSlug);
   const currentVersion = currentApp?.versions.find(

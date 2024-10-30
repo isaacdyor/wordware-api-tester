@@ -1,11 +1,11 @@
 "use client";
 
 import { WordAppCard } from "@/components/word-app-card";
-import { useLocalStore } from "@/stores/useLocalStore";
+import { useApps } from "@/stores/store";
 import Link from "next/link";
 
 export default function AppsPage() {
-  const { apps } = useLocalStore();
+  const apps = useApps();
 
   return (
     <>

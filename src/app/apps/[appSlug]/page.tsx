@@ -4,21 +4,20 @@ import { Output } from "@/components/output";
 import { RunTable } from "@/components/run-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WordAppForm } from "@/components/word-app-form";
-import { useLocalStore } from "@/stores/useLocalStore";
+import { useCurrentApp, useCurrentVersion, useRunStatus } from "@/stores/store";
 import { createFormSchema, FormSchema } from "@/types/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 export default function AppDetail() {
-  const { currentApp, currentVersion } = useLocalStore();
-  const [outputs, setOutputs] = useState<Record<string, string>>({});
+  const currentApp = useCurrentApp();
+  const currentVersion = useCurrentVersion();
+  const runStatus = useRunStatus();
+
   const [tab, setTab] = useState<"playground" | "api" | "previous-runs">(
     "playground",
   );
-  const [runStatus, setRunStatus] = useState<
-    "COMPLETE" | "RUNNING" | "ERROR" | null
-  >(null);
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(createFormSchema(currentVersion)),
@@ -63,6 +62,7 @@ export default function AppDetail() {
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       <div className="flex items-center justify-between">
         <h1 className="text-4xl font-bold">{currentVersion?.title}</h1>
+        {runStatus && <p>{runStatus}</p>}
       </div>
 
       <Tabs
@@ -83,25 +83,16 @@ export default function AppDetail() {
           className="flex flex-1 overflow-hidden data-[state=inactive]:hidden"
         >
           <div className="flex h-full w-full gap-4">
-            <WordAppForm
-              setOutputs={setOutputs}
-              setRunStatus={setRunStatus}
-              runStatus={runStatus}
-              form={form}
-            />
+            <WordAppForm form={form} />
 
-            <Output runOutputs={outputs} />
+            <Output />
           </div>
         </TabsContent>
         <TabsContent value="api" className="flex-1">
           Change your password here.
         </TabsContent>
         <TabsContent value="previous-runs" className="flex-1">
-          <RunTable
-            setTab={setTab}
-            setInputValues={setInputValues}
-            setOutputs={setOutputs}
-          />
+          <RunTable setTab={setTab} setInputValues={setInputValues} />
         </TabsContent>
       </Tabs>
     </div>

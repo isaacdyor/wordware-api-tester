@@ -3,7 +3,7 @@ import { AppWithVersions, Ask, VersionWithRuns, Output } from "@/types/types";
 
 interface StoreState {
   apps: AppWithVersions[] | null;
-  apiKey: string;
+  apiKey: string | null;
   currentAppId: string | null;
   currentVersion: string | null;
   runStatus: "COMPLETE" | "RUNNING" | "AWAITING_INPUT" | "ERROR" | null;
@@ -36,7 +36,7 @@ interface StoreState {
 export const useStore = create<StoreState>((set, get) => ({
   // Initial state
   apps: null,
-  apiKey: "",
+  apiKey: null,
   currentAppId: null,
   currentVersion: null,
   runStatus: null,

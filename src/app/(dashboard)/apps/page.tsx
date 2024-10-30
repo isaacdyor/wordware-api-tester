@@ -1,11 +1,13 @@
 "use client";
 
 import { WordAppCard } from "@/components/word-app-card";
-import { useApps } from "@/stores/store";
+import { useApiKey, useApps } from "@/stores/store";
 import Link from "next/link";
 
 export default function AppsPage() {
   const apps = useApps();
+  const apiKey = useApiKey();
+  console.log(apiKey);
 
   return (
     <>

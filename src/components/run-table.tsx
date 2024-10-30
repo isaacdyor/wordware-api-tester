@@ -40,7 +40,7 @@ export function RunTable({ setInputValues, setTab }: RunTableProps) {
   };
 
   return (
-    <div className="h-full overflow-y-auto rounded-md border">
+    <div className="max-h-full overflow-y-auto rounded-md border">
       <Table>
         <TableBody>
           {sortedRuns.map((run) => (

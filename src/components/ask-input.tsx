@@ -49,7 +49,7 @@ export function AskInput() {
     ];
     setOutputs(outputRef.current);
 
-    await answerAsk(apiKey, runId, ask.askId, data.response);
+    await answerAsk(apiKey ?? "", runId, ask.askId, data.response);
   };
 
   return (

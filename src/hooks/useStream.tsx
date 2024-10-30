@@ -76,7 +76,6 @@ export function useStream() {
           runTime: new Date().toISOString(),
         };
 
-        console.log(currentApp.versions[0].runs.length);
         // Create a deep copy of the current app to avoid reference issues
         const updatedApp = JSON.parse(JSON.stringify(currentApp));
 
@@ -103,6 +102,7 @@ export function useStream() {
           if (jsonBuffer.trim().endsWith("}")) {
             try {
               const data = JSON.parse(jsonBuffer);
+              console.log(data);
               if (
                 data.type === "chunk" &&
                 (!data.content || data.path === "{}")
@@ -204,7 +204,7 @@ export function useStream() {
       );
 
       const runId = await startRun(
-        apiKey,
+        apiKey ?? "",
         currentVersion.version,
         formattedValues,
         currentApp.orgSlug,

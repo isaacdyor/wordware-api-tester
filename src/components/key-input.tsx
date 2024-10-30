@@ -38,7 +38,7 @@ export function KeyInput({ setIsFetching }: KeyInputProps) {
 
   // set the default value once loaded from local storage
   useEffect(() => {
-    form.reset({ apiKey });
+    form.reset({ apiKey: apiKey ?? "" });
   }, [apiKey, form]);
 
   const appsRef = useRef(apps);

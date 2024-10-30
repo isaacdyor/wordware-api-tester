@@ -3,9 +3,9 @@
 import {
   App,
   AppSchema,
+  RunResponseSchema,
   Version,
   VersionSchema,
-  RunResponseSchema,
 } from "@/types/types";
 import { z } from "zod";
 
@@ -92,6 +92,42 @@ export async function startRun(
     return runId;
   } catch (error) {
     console.error("Error starting run:", error);
+    throw error;
+  }
+}
+
+export async function answerAsk(
+  apiKey: string,
+  runId: string,
+  askId: string,
+  value: string,
+): Promise<boolean> {
+  try {
+    const response = await fetch(
+      `https://api.wordware.ai/v1alpha/runs/${runId}/asks/${askId}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "text",
+          value: value,
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(data);
+
+    return true;
+  } catch (error) {
+    console.error("Error answering ask:", error);
     throw error;
   }
 }

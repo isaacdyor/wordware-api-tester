@@ -6,8 +6,15 @@ import { z } from "zod";
 import { Input } from "./ui/input";
 
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
+import { useApiKey, useAsk, useRunId, useStoreActions } from "@/stores/store";
+import { answerAsk } from "@/actions/actions";
 
 export function AskInput() {
+  const ask = useAsk();
+  const apiKey = useApiKey();
+  const runId = useRunId();
+  const { setRunStatus } = useStoreActions();
+
   const askInputSchema = z.object({
     response: z.string(),
   });
@@ -21,31 +28,36 @@ export function AskInput() {
     },
   });
 
-  const onSubmit = (data: AskInputData) => {
-    console.log(data);
+  const onSubmit = async (data: AskInputData) => {
+    if (!ask || !runId) return;
+    setRunStatus("RUNNING");
+    const success = await answerAsk(apiKey, runId, ask.askId, data.response);
+    if (success) {
+      console.log("success");
+    }
   };
 
   return (
     <Form {...form}>
-      <form className="w-full" onSubmit={form.handleSubmit(onSubmit)}>
+      <form className="w-full pr-5" onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
           control={form.control}
           name="response"
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <div className="flex">
+                <div className="group flex w-full rounded-md focus-within:ring-1 focus-within:ring-ring">
                   <Input
                     disabled={form.formState.isSubmitting}
-                    placeholder="API Key"
-                    className="w-[488px] rounded-r-none"
+                    placeholder={ask?.content.value}
+                    className="rounded-l-md rounded-r-none focus-visible:ring-0"
                     {...field}
                   />
                   <Button
                     disabled={form.formState.isSubmitting}
                     type="submit"
                     size="icon"
-                    className="rounded-l-none px-2 text-muted-foreground"
+                    className="rounded-l-none rounded-r-md px-2 text-muted-foreground"
                     variant="secondary"
                   >
                     {form.formState.isSubmitting ? (

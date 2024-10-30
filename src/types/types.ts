@@ -34,10 +34,21 @@ export const RunSchema = z.object({
   runTime: z.string().optional(),
 });
 
+const AskContentSchema = z.object({
+  type: z.literal("text"),
+  value: z.string(),
+});
+
+// Define the main message schema
+export const AskSchema = z.object({
+  content: AskContentSchema,
+  askId: z.string().uuid(),
+});
+
 export type App = z.infer<typeof AppSchema>;
 export type Version = z.infer<typeof VersionSchema>;
 export type Run = z.infer<typeof RunSchema>;
-
+export type Ask = z.infer<typeof AskSchema>;
 export type RunInput = {
   name: string;
   value: string;

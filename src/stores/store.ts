@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { AppWithVersions, VersionWithRuns } from "@/types/types";
+import { AppWithVersions, Ask, VersionWithRuns } from "@/types/types";
 
 interface StoreState {
   apps: AppWithVersions[] | null;
@@ -8,6 +8,8 @@ interface StoreState {
   currentVersion: VersionWithRuns | null;
   runStatus: "COMPLETE" | "RUNNING" | "AWAITING_INPUT" | "ERROR" | null;
   outputs: Record<string, string>;
+  ask: Ask | null;
+  runId: string | null;
 
   // Actions
   updateApps: (newApps: AppWithVersions[] | null) => void;
@@ -20,39 +22,28 @@ interface StoreState {
     status: "COMPLETE" | "RUNNING" | "AWAITING_INPUT" | "ERROR" | null,
   ) => void;
   setOutputs: (outputs: Record<string, string>) => void;
+  setAsk: (ask: Ask | null) => void;
+  setRunId: (runId: string | null) => void;
   getCurrentApp: (appSlug: string | null) => AppWithVersions | null;
 }
 
 export const useStore = create<StoreState>((set, get) => ({
   // Initial state
-  apps: (() => {
-    // Initialize from localStorage if in browser environment
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("apps");
-      return stored ? JSON.parse(stored) : null;
-    }
-    return null;
-  })(),
-  apiKey:
-    typeof window !== "undefined" ? localStorage.getItem("apiKey") || "" : "",
+  apps: null,
+  apiKey: "",
   currentApp: null,
   currentVersion: null,
   runStatus: null,
   outputs: {},
-
+  ask: null,
+  runId: null,
   // Actions
   updateApps: (newApps) => {
     set({ apps: newApps });
-    if (typeof window !== "undefined") {
-      localStorage.setItem("apps", JSON.stringify(newApps));
-    }
   },
 
   updateApiKey: (newApiKey) => {
     set({ apiKey: newApiKey });
-    if (typeof window !== "undefined") {
-      localStorage.setItem("apiKey", newApiKey);
-    }
   },
 
   updateApp: (updatedApp) => {
@@ -61,11 +52,6 @@ export const useStore = create<StoreState>((set, get) => ({
         state.apps?.map((app) =>
           app.appSlug === updatedApp.appSlug ? updatedApp : app,
         ) || null;
-
-      if (typeof window !== "undefined") {
-        localStorage.setItem("apps", JSON.stringify(newApps));
-      }
-
       return { apps: newApps };
     });
   },
@@ -76,11 +62,6 @@ export const useStore = create<StoreState>((set, get) => ({
         state.apps?.map((app) =>
           app.appSlug === appSlug ? { ...app, selectedVersion: version } : app,
         ) || null;
-
-      if (typeof window !== "undefined") {
-        localStorage.setItem("apps", JSON.stringify(newApps));
-      }
-
       return { apps: newApps };
     });
   },
@@ -89,12 +70,14 @@ export const useStore = create<StoreState>((set, get) => ({
   setCurrentVersion: (version) => set({ currentVersion: version }),
   setRunStatus: (status) => set({ runStatus: status }),
   setOutputs: (outputs) => set({ outputs }),
+  setAsk: (ask) => set({ ask }),
 
   getCurrentApp: (appSlug) => {
     const state = get();
     if (!appSlug || !state.apps) return null;
     return state.apps.find((app) => app.appSlug === appSlug) || null;
   },
+  setRunId: (runId) => set({ runId }),
 }));
 
 // Selector hooks for better performance
@@ -105,6 +88,8 @@ export const useCurrentVersion = () =>
   useStore((state) => state.currentVersion);
 export const useRunStatus = () => useStore((state) => state.runStatus);
 export const useOutputs = () => useStore((state) => state.outputs);
+export const useAsk = () => useStore((state) => state.ask);
+export const useRunId = () => useStore((state) => state.runId);
 
 // Action hooks
 export const useStoreActions = () => ({
@@ -116,5 +101,7 @@ export const useStoreActions = () => ({
   setCurrentVersion: useStore((state) => state.setCurrentVersion),
   setRunStatus: useStore((state) => state.setRunStatus),
   setOutputs: useStore((state) => state.setOutputs),
+  setAsk: useStore((state) => state.setAsk),
   getCurrentApp: useStore((state) => state.getCurrentApp),
+  setRunId: useStore((state) => state.setRunId),
 });

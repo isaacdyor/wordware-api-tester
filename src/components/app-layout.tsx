@@ -11,12 +11,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { AppWithVersions } from "@/types/types";
+import { AppWithVersions, Version } from "@/types/types";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 
 import { useParams } from "next/navigation";
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { NavBreadcrumb } from "./nav-breadcrumb";
 import { useApiKey, useApps, useStoreActions } from "@/stores/store";
 
@@ -26,7 +26,8 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const apps = useApps();
-  const { updateApps, updateApiKey } = useStoreActions();
+  const { updateApps, updateApiKey, setCurrentVersion, setCurrentApp } =
+    useStoreActions();
   const apiKey = useApiKey();
 
   const [isFetching, setIsFetching] = useState(true);
@@ -36,6 +37,31 @@ export function AppLayout({ children }: AppLayoutProps) {
   useLayoutEffect(() => {
     setIsClient(true);
   }, []);
+
+  useEffect(() => {
+    const storedApps = localStorage.getItem("apps");
+    const parsedApps = storedApps ? JSON.parse(storedApps) : null;
+    const storedApiKey = localStorage.getItem("apiKey");
+
+    const app = parsedApps?.find(
+      (app: AppWithVersions) => app.appSlug === params.appSlug,
+    );
+
+    const version = app?.versions.find(
+      (version: Version) => version.version === app?.selectedVersion,
+    );
+
+    if (storedApps) updateApps(parsedApps);
+    if (storedApiKey) updateApiKey(storedApiKey);
+    if (app) setCurrentApp(app);
+    if (version) setCurrentVersion(version);
+  }, [
+    params.appSlug,
+    setCurrentApp,
+    setCurrentVersion,
+    updateApiKey,
+    updateApps,
+  ]);
 
   const appSlug = params.appSlug;
   const app = apps?.find((app) => {

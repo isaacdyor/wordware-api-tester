@@ -5,11 +5,14 @@ import {
   useCurrentVersion,
   useStoreActions,
 } from "@/stores/store";
+import { AskSchema } from "@/types/types";
 import { useRef } from "react";
 
 export function useStream() {
   const latestOutputsRef = useRef<Record<string, string>>({});
-  const { updateApp, setRunStatus, setOutputs } = useStoreActions();
+  const { setAsk } = useStoreActions();
+
+  const { updateApp, setRunStatus, setOutputs, setRunId } = useStoreActions();
   const apiKey = useApiKey();
   const currentApp = useCurrentApp();
   const currentVersion = useCurrentVersion();
@@ -91,13 +94,19 @@ export function useStream() {
           if (jsonBuffer.trim().endsWith("}")) {
             try {
               const data = JSON.parse(jsonBuffer);
-
-              latestOutputsRef.current = {
-                ...latestOutputsRef.current,
-                [data.path]:
-                  (latestOutputsRef.current[data.path] || "") + data.content,
-              };
-              setOutputs(latestOutputsRef.current);
+              console.log(data);
+              if (data.type === "ask") {
+                setRunStatus("AWAITING_INPUT");
+                const parsedData = AskSchema.parse(data);
+                setAsk(parsedData);
+              } else {
+                latestOutputsRef.current = {
+                  ...latestOutputsRef.current,
+                  [data.path]:
+                    (latestOutputsRef.current[data.path] || "") + data.content,
+                };
+                setOutputs(latestOutputsRef.current);
+              }
 
               jsonBuffer = "";
             } catch (error) {
@@ -158,6 +167,7 @@ export function useStream() {
         currentApp.orgSlug,
         currentApp.appSlug,
       );
+      setRunId(runId);
       streamRunOutput(runId, values);
     } catch (error) {
       console.error("Error running app:", error);

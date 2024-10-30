@@ -12,9 +12,8 @@ import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 import { AskInput } from "./ask-input";
-import { useOutputs } from "@/stores/store";
+import { useOutputs, useRunStatus } from "@/stores/store";
 
-// Code block component with syntax highlighting and copy functionality
 const CodeBlock = ({
   inline,
   className,
@@ -66,7 +65,6 @@ const CodeBlock = ({
   );
 };
 
-// Enhanced markdown components with proper spacing and styling
 const MarkdownComponents = {
   h1: ({ ...props }) => (
     <h1
@@ -153,9 +151,9 @@ const MarkdownComponents = {
 
 export function Output() {
   const runOutputs = useOutputs();
+  const runStatus = useRunStatus();
   const [jsonView, setJsonView] = useState(false);
   const [autoScroll, setAutoScroll] = useState(true);
-  const [showInput, setShowInput] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -198,29 +196,31 @@ export function Output() {
   };
 
   return (
-    <Card className="flex h-full w-full">
-      <CardContent className="group relative flex flex-1 flex-col pr-1 pt-6">
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="absolute right-2 top-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                onClick={() => setJsonView(!jsonView)}
-              >
-                {jsonView ? (
-                  <Table className="h-4 w-4" />
-                ) : (
-                  <Braces className="h-4 w-4" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{jsonView ? "Formatted View" : "JSON View"}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+    <Card className="relative w-full">
+      <CardContent className="group flex flex-1 flex-col pr-1 pt-6">
+        {Object.keys(runOutputs).length > 0 && (
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute right-2 top-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                  onClick={() => setJsonView(!jsonView)}
+                >
+                  {jsonView ? (
+                    <Table className="h-4 w-4" />
+                  ) : (
+                    <Braces className="h-4 w-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{jsonView ? "Formatted View" : "JSON View"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
         <div
           ref={scrollContainerRef}
           className="scrollbar-w-0 flex-1 overflow-y-auto rounded-lg pr-5"
@@ -242,8 +242,12 @@ export function Output() {
             </div>
           )}
         </div>
-        {showInput && !jsonView && <AskInput />}
       </CardContent>
+      {runStatus === "AWAITING_INPUT" && !jsonView && (
+        <div className="absolute bottom-2 left-2.5 w-full">
+          <AskInput />
+        </div>
+      )}
     </Card>
   );
 }

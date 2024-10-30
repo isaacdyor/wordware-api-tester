@@ -4,16 +4,15 @@ import { Output } from "@/components/output";
 import { RunTable } from "@/components/run-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WordAppForm } from "@/components/word-app-form";
-import { useCurrentApp, useCurrentVersion, useRunStatus } from "@/stores/store";
+import { useCurrentApp, useCurrentVersion } from "@/stores/store";
 import { createFormSchema, FormSchema } from "@/types/form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 export default function AppDetail() {
   const currentApp = useCurrentApp();
   const currentVersion = useCurrentVersion();
-  const runStatus = useRunStatus();
 
   const [tab, setTab] = useState<"playground" | "api" | "previous-runs">(
     "playground",
@@ -21,27 +20,19 @@ export default function AppDetail() {
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(createFormSchema(currentVersion)),
-    defaultValues: {},
+    defaultValues: currentVersion?.inputs.reduce(
+      (acc, input) => {
+        acc[input.name] =
+          input.type === "image" ||
+          input.type === "audio" ||
+          input.type === "file"
+            ? null
+            : "";
+        return acc;
+      },
+      {} as Record<string, string | null>,
+    ),
   });
-
-  useEffect(() => {
-    if (currentVersion) {
-      const defaultValues = currentVersion.inputs.reduce(
-        (acc, input) => {
-          acc[input.name] =
-            input.type === "image" ||
-            input.type === "audio" ||
-            input.type === "file"
-              ? null
-              : "";
-          return acc;
-        },
-        {} as Record<string, string | null>,
-      );
-
-      form.reset(defaultValues);
-    }
-  }, [currentVersion, form]);
 
   const setInputValues = (values: Partial<FormSchema>) => {
     (
@@ -62,7 +53,6 @@ export default function AppDetail() {
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       <div className="flex items-center justify-between">
         <h1 className="text-4xl font-bold">{currentVersion?.title}</h1>
-        {runStatus && <p>{runStatus}</p>}
       </div>
 
       <Tabs

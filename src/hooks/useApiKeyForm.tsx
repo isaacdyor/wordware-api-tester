@@ -117,7 +117,7 @@ export function useApiKeyForm() {
         setBackgroundRefresh(false);
       }
     },
-    [updateApps],
+    [updateApps, setBackgroundRefresh],
   );
 
   const onSubmit = async (data: FormData) => {

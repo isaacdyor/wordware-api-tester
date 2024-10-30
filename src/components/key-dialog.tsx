@@ -17,12 +17,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useApiKeyForm } from "@/hooks/useApiKeyForm";
-import { useApiKey, useAppsLoading, useStoreActions } from "@/stores/store";
+import { useApiKey } from "@/stores/store";
 import { redirect } from "next/navigation";
 
 export default function KeyDialog() {
   const apiKey = useApiKey();
-  const appsLoading = useAppsLoading();
   const { form, error, onSubmit } = useApiKeyForm();
   if (apiKey) {
     redirect("/apps");

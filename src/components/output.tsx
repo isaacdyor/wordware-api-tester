@@ -197,11 +197,11 @@ export function Output({
   };
 
   return (
-    <Card className="w-full">
-      <CardContent className="group relative pt-6">
+    <Card className="flex h-full w-full">
+      <CardContent className="group relative flex-1 pr-1 pt-6">
         <div
           ref={scrollContainerRef}
-          className="scrollbar-none max-h-[500px] overflow-y-auto rounded-lg px-1"
+          className="scrollbar-w-0 h-full overflow-y-auto rounded-lg pr-5"
         >
           {jsonView ? (
             <pre className="whitespace-pre-wrap break-words text-sm text-muted-foreground">

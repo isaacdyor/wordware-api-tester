@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { timeAgo } from "@/lib/utils";
 import { useLocalStore } from "@/stores/useLocalStore";
 import { RunInput, RunWithInputs } from "@/types/types";
 import { useParams } from "next/navigation";
@@ -27,6 +28,13 @@ export function RunTable({
   const currentVersion = currentApp?.versions.find(
     (version) => version.version === currentApp?.selectedVersion,
   );
+
+  const sortedRuns = [...(currentVersion?.runs || [])].sort((a, b) => {
+    return (
+      new Date(b.runTime || 0).getTime() - new Date(a.runTime || 0).getTime()
+    );
+  });
+
   const handleSelect = (run: RunWithInputs) => {
     if (!run.inputs) return;
 
@@ -51,9 +59,15 @@ export function RunTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {currentVersion?.runs.map((run) => (
-            <TableRow key={run.runTime} onClick={() => handleSelect(run)}>
-              <TableCell className="font-medium">{run.runTime}</TableCell>
+          {sortedRuns.map((run) => (
+            <TableRow
+              key={run.runTime}
+              onClick={() => handleSelect(run)}
+              className="cursor-pointer hover:bg-muted/50"
+            >
+              <TableCell className="font-medium">
+                {timeAgo(run.runTime ?? new Date())}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

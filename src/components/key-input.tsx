@@ -181,7 +181,7 @@ export function KeyInput({
                       disabled={isSubmitting}
                       type="submit"
                       size="icon"
-                      className="rounded-l-none px-2"
+                      className="rounded-l-none px-2 text-muted-foreground"
                       variant="secondary"
                     >
                       {isSubmitting ? (

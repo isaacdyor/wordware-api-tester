@@ -78,7 +78,10 @@ export default function AppDetail() {
           <TabsTrigger value="api">API</TabsTrigger>
           <TabsTrigger value="previous-runs">Previous runs</TabsTrigger>
         </TabsList>
-        <TabsContent value="playground" className="flex flex-1 overflow-hidden">
+        <TabsContent
+          value="playground"
+          className="flex flex-1 overflow-hidden data-[state=inactive]:hidden"
+        >
           <div className="flex h-full w-full gap-4">
             <WordAppForm
               setOutputs={setOutputs}

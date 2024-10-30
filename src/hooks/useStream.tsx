@@ -6,7 +6,7 @@ import {
   useOutputRef,
   useStoreActions,
 } from "@/stores/store";
-import { AskSchema } from "@/types/types";
+import { AskSchema, VersionWithRuns } from "@/types/types";
 
 export function useStream() {
   const outputRef = useOutputRef();
@@ -72,14 +72,19 @@ export function useStream() {
           runTime: new Date().toISOString(),
         };
 
-        const updatedApp = {
-          ...currentApp,
-          versions: currentApp?.versions.map((v) =>
-            v.version === currentVersion?.version
-              ? { ...v, runs: [...(v.runs || []), run] }
-              : v,
-          ),
-        };
+        console.log(currentApp.versions[0].runs.length);
+        // Create a deep copy of the current app to avoid reference issues
+        const updatedApp = JSON.parse(JSON.stringify(currentApp));
+
+        // Update the version with the new run
+        updatedApp.versions = updatedApp.versions.map((v: VersionWithRuns) =>
+          v.version === currentVersion?.version
+            ? {
+                ...v,
+                runs: Array.isArray(v.runs) ? [...v.runs, run] : [run],
+              }
+            : v,
+        );
 
         updateApp(updatedApp);
         break;

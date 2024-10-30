@@ -63,10 +63,18 @@ export const useStore = create<StoreState>((set, get) => ({
         state.apps?.map((app) =>
           app.appSlug === updatedApp.appSlug ? updatedApp : app,
         ) || null;
+
       if (newApps) {
         localStorage.setItem("apps", JSON.stringify(newApps));
       }
-      return { apps: newApps };
+
+      // Also update currentApp if it's the same app
+      const newState: Partial<StoreState> = { apps: newApps };
+      if (state.currentApp?.appSlug === updatedApp.appSlug) {
+        newState.currentApp = updatedApp;
+      }
+
+      return newState;
     });
   },
 

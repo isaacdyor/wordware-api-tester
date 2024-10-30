@@ -27,7 +27,7 @@ export function WordAppForm({ form }: WordAppFormProps) {
   const currentVersion = useCurrentVersion();
 
   return (
-    <Card className="flex w-full max-w-80 flex-col gap-1">
+    <Card className="flex w-full min-w-48 max-w-80 flex-col gap-1">
       <CardContent className="p-4">
         {currentVersion?.inputs.length && currentVersion.inputs.length > 0 && (
           <h4 className="text-md font-semibold">Inputs:</h4>

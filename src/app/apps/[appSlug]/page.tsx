@@ -79,7 +79,7 @@ export default function AppDetail() {
           </div>
         </TabsContent>
         <TabsContent value="api" className="flex-1">
-          Change your password here.
+          V0 API
         </TabsContent>
         <TabsContent value="previous-runs" className="flex-1">
           <RunTable setTab={setTab} setInputValues={setInputValues} />

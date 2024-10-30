@@ -223,7 +223,7 @@ export function OutputDisplay() {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="absolute right-2 top-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                  className="absolute right-2 top-2 z-20 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
                   onClick={() => setJsonView(!jsonView)}
                 >
                   {jsonView ? (

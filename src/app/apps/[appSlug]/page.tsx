@@ -35,6 +35,7 @@ export default function AppDetail() {
   });
 
   const setInputValues = (values: Partial<FormSchema>) => {
+    console.log(values);
     (
       Object.entries(values) as [
         keyof FormSchema,
@@ -43,7 +44,6 @@ export default function AppDetail() {
     ).forEach(([key, value]) => {
       form.setValue(key, value as FormSchema[keyof FormSchema]);
     });
-    console.log(form.getValues());
   };
 
   if (!currentApp || !currentVersion) {

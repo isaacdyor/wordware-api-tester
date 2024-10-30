@@ -74,8 +74,8 @@ export function FileUpload({ type, field }: FileUploadProps) {
     field.onChange(null);
   }, [field]);
 
-  const parsedValue = field.value ? JSON.parse(field.value) : null;
-  console.log(parsedValue);
+  const parsedValue =
+    typeof field.value === "string" ? JSON.parse(field.value) : field.value;
 
   return (
     <div className="space-y-4">

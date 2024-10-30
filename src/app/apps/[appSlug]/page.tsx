@@ -1,6 +1,6 @@
 "use client";
 
-import { Output } from "@/components/output";
+import { OutputDisplay } from "@/components/output-display";
 import { RunTable } from "@/components/run-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WordAppForm } from "@/components/word-app-form";
@@ -75,7 +75,7 @@ export default function AppDetail() {
           <div className="flex h-full w-full gap-4">
             <WordAppForm form={form} />
 
-            <Output />
+            <OutputDisplay />
           </div>
         </TabsContent>
         <TabsContent value="api" className="flex-1">

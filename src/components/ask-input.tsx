@@ -5,15 +5,22 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Input } from "./ui/input";
 
-import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
-import { useApiKey, useAsk, useRunId, useStoreActions } from "@/stores/store";
 import { answerAsk } from "@/actions/actions";
+import {
+  useApiKey,
+  useAsk,
+  useOutputRef,
+  useRunId,
+  useStoreActions,
+} from "@/stores/store";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
 
 export function AskInput() {
   const ask = useAsk();
   const apiKey = useApiKey();
   const runId = useRunId();
-  const { setRunStatus } = useStoreActions();
+  const outputRef = useOutputRef();
+  const { setRunStatus, setOutputs } = useStoreActions();
 
   const askInputSchema = z.object({
     response: z.string(),
@@ -31,15 +38,23 @@ export function AskInput() {
   const onSubmit = async (data: AskInputData) => {
     if (!ask || !runId) return;
     setRunStatus("RUNNING");
-    const success = await answerAsk(apiKey, runId, ask.askId, data.response);
-    if (success) {
-      console.log("success");
-    }
+
+    outputRef.current = [
+      ...outputRef.current,
+      {
+        content: data.response,
+        role: "user",
+        path: "",
+      },
+    ];
+    setOutputs(outputRef.current);
+
+    await answerAsk(apiKey, runId, ask.askId, data.response);
   };
 
   return (
     <Form {...form}>
-      <form className="w-full pr-5" onSubmit={form.handleSubmit(onSubmit)}>
+      <form className="w-full" onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
           control={form.control}
           name="response"
@@ -57,7 +72,7 @@ export function AskInput() {
                     disabled={form.formState.isSubmitting}
                     type="submit"
                     size="icon"
-                    className="rounded-l-none rounded-r-md px-2 text-muted-foreground"
+                    className="rounded-l-none rounded-r-md border border-l-0 px-2 text-muted-foreground"
                     variant="secondary"
                   >
                     {form.formState.isSubmitting ? (

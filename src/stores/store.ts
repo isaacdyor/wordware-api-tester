@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { AppWithVersions, Ask, VersionWithRuns } from "@/types/types";
+import { AppWithVersions, Ask, VersionWithRuns, Output } from "@/types/types";
 
 interface StoreState {
   apps: AppWithVersions[] | null;
@@ -7,9 +7,11 @@ interface StoreState {
   currentApp: AppWithVersions | null;
   currentVersion: VersionWithRuns | null;
   runStatus: "COMPLETE" | "RUNNING" | "AWAITING_INPUT" | "ERROR" | null;
-  outputs: Record<string, string>;
+  outputs: Output[];
+  outputRef: React.MutableRefObject<Output[]>;
   ask: Ask | null;
   runId: string | null;
+  autoScroll: boolean;
 
   // Actions
   updateApps: (newApps: AppWithVersions[] | null) => void;
@@ -21,28 +23,37 @@ interface StoreState {
   setRunStatus: (
     status: "COMPLETE" | "RUNNING" | "AWAITING_INPUT" | "ERROR" | null,
   ) => void;
-  setOutputs: (outputs: Record<string, string>) => void;
+  setOutputs: (newOutputs: Output[]) => void;
   setAsk: (ask: Ask | null) => void;
   setRunId: (runId: string | null) => void;
   getCurrentApp: (appSlug: string | null) => AppWithVersions | null;
+  setAutoScroll: (autoScroll: boolean) => void;
 }
 
 export const useStore = create<StoreState>((set, get) => ({
-  // Initial state
+  // Initial state with values from localStorage
   apps: null,
   apiKey: "",
   currentApp: null,
   currentVersion: null,
   runStatus: null,
-  outputs: {},
+  outputs: [],
+  outputRef: { current: [] },
   ask: null,
   runId: null,
+  autoScroll: true,
   // Actions
   updateApps: (newApps) => {
+    if (newApps) {
+      localStorage.setItem("apps", JSON.stringify(newApps));
+    } else {
+      localStorage.removeItem("apps");
+    }
     set({ apps: newApps });
   },
 
   updateApiKey: (newApiKey) => {
+    localStorage.setItem("apiKey", newApiKey);
     set({ apiKey: newApiKey });
   },
 
@@ -52,6 +63,9 @@ export const useStore = create<StoreState>((set, get) => ({
         state.apps?.map((app) =>
           app.appSlug === updatedApp.appSlug ? updatedApp : app,
         ) || null;
+      if (newApps) {
+        localStorage.setItem("apps", JSON.stringify(newApps));
+      }
       return { apps: newApps };
     });
   },
@@ -62,6 +76,9 @@ export const useStore = create<StoreState>((set, get) => ({
         state.apps?.map((app) =>
           app.appSlug === appSlug ? { ...app, selectedVersion: version } : app,
         ) || null;
+      if (newApps) {
+        localStorage.setItem("apps", JSON.stringify(newApps));
+      }
       return { apps: newApps };
     });
   },
@@ -69,7 +86,7 @@ export const useStore = create<StoreState>((set, get) => ({
   setCurrentApp: (app) => set({ currentApp: app }),
   setCurrentVersion: (version) => set({ currentVersion: version }),
   setRunStatus: (status) => set({ runStatus: status }),
-  setOutputs: (outputs) => set({ outputs }),
+  setOutputs: (newOutputs) => set({ outputs: newOutputs }),
   setAsk: (ask) => set({ ask }),
 
   getCurrentApp: (appSlug) => {
@@ -78,6 +95,7 @@ export const useStore = create<StoreState>((set, get) => ({
     return state.apps.find((app) => app.appSlug === appSlug) || null;
   },
   setRunId: (runId) => set({ runId }),
+  setAutoScroll: (autoScroll) => set({ autoScroll }),
 }));
 
 // Selector hooks for better performance
@@ -90,7 +108,8 @@ export const useRunStatus = () => useStore((state) => state.runStatus);
 export const useOutputs = () => useStore((state) => state.outputs);
 export const useAsk = () => useStore((state) => state.ask);
 export const useRunId = () => useStore((state) => state.runId);
-
+export const useOutputRef = () => useStore((state) => state.outputRef);
+export const useAutoScroll = () => useStore((state) => state.autoScroll);
 // Action hooks
 export const useStoreActions = () => ({
   updateApps: useStore((state) => state.updateApps),
@@ -104,4 +123,5 @@ export const useStoreActions = () => ({
   setAsk: useStore((state) => state.setAsk),
   getCurrentApp: useStore((state) => state.getCurrentApp),
   setRunId: useStore((state) => state.setRunId),
+  setAutoScroll: useStore((state) => state.setAutoScroll),
 });

@@ -3,14 +3,14 @@ import {
   useApiKey,
   useCurrentApp,
   useCurrentVersion,
+  useOutputRef,
   useStoreActions,
 } from "@/stores/store";
 import { AskSchema } from "@/types/types";
-import { useRef } from "react";
 
 export function useStream() {
-  const latestOutputsRef = useRef<Record<string, string>>({});
-  const { setAsk } = useStoreActions();
+  const outputRef = useOutputRef();
+  const { setAsk, setAutoScroll } = useStoreActions();
 
   const { updateApp, setRunStatus, setOutputs, setRunId } = useStoreActions();
   const apiKey = useApiKey();
@@ -67,7 +67,7 @@ export function useStream() {
         });
 
         const run = {
-          outputs: latestOutputsRef.current,
+          outputs: outputRef.current,
           inputs,
           runTime: new Date().toISOString(),
         };
@@ -94,20 +94,47 @@ export function useStream() {
           if (jsonBuffer.trim().endsWith("}")) {
             try {
               const data = JSON.parse(jsonBuffer);
-              console.log(data);
               if (data.type === "ask") {
                 setRunStatus("AWAITING_INPUT");
                 const parsedData = AskSchema.parse(data);
                 setAsk(parsedData);
-              } else {
-                latestOutputsRef.current = {
-                  ...latestOutputsRef.current,
-                  [data.path]:
-                    (latestOutputsRef.current[data.path] || "") + data.content,
-                };
-                setOutputs(latestOutputsRef.current);
-              }
 
+                const lastOutput =
+                  outputRef.current[outputRef.current.length - 1];
+                if (lastOutput) {
+                  lastOutput.content += `\n\n${parsedData.content.value}\n\n`;
+                  outputRef.current = [...outputRef.current];
+                } else {
+                  // If there's no previous output, create first entry
+                  outputRef.current = [
+                    {
+                      content: parsedData.content.value,
+                      role: "system",
+                      path: parsedData.path || "",
+                    },
+                  ];
+                }
+              } else {
+                const lastOutput =
+                  outputRef.current[outputRef.current.length - 1];
+
+                if (lastOutput && lastOutput.path === (data.path || "")) {
+                  // If the path matches the last output, append to it
+                  lastOutput.content += data.content;
+                  outputRef.current = [...outputRef.current];
+                } else {
+                  // If it's a new path or first output, create new entry
+                  outputRef.current = [
+                    ...outputRef.current,
+                    {
+                      content: data.content,
+                      role: "system",
+                      path: data.path || "",
+                    },
+                  ];
+                }
+              }
+              setOutputs(outputRef.current);
               jsonBuffer = "";
             } catch (error) {
               console.error("Not yet complete JSON", error);
@@ -122,8 +149,9 @@ export function useStream() {
     if (!currentApp) throw new Error("No current app");
     try {
       setRunStatus("RUNNING");
-      setOutputs({});
-      latestOutputsRef.current = {};
+      setAutoScroll(true);
+      setOutputs([]);
+      outputRef.current = [];
       if (!currentVersion) throw new Error("Selected version not found");
 
       const formattedValues = currentVersion.inputs.reduce(

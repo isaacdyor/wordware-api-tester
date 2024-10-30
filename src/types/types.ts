@@ -28,12 +28,6 @@ export const RunResponseSchema = z.object({
   runId: z.string(),
 });
 
-export const RunSchema = z.object({
-  outputs: z.record(z.unknown()).optional(),
-  errors: z.array(z.object({ message: z.string() })).optional(),
-  runTime: z.string().optional(),
-});
-
 const AskContentSchema = z.object({
   type: z.literal("text"),
   value: z.string(),
@@ -41,17 +35,28 @@ const AskContentSchema = z.object({
 
 // Define the main message schema
 export const AskSchema = z.object({
+  path: z.string(),
   content: AskContentSchema,
   askId: z.string().uuid(),
 });
 
 export type App = z.infer<typeof AppSchema>;
 export type Version = z.infer<typeof VersionSchema>;
-export type Run = z.infer<typeof RunSchema>;
 export type Ask = z.infer<typeof AskSchema>;
 export type RunInput = {
   name: string;
   value: string;
+};
+
+export type Output = {
+  path: string;
+  content: string;
+  role: "user" | "system";
+};
+
+export type Run = {
+  outputs: Output[];
+  runTime: string;
 };
 
 export type RunWithInputs = Run & {

@@ -10,9 +10,16 @@ import { Braces, Check, Copy, Table } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { Output } from "@/types/types";
 
 import { AskInput } from "./ask-input";
-import { useOutputs, useRunStatus } from "@/stores/store";
+import {
+  useAutoScroll,
+  useOutputs,
+  useRunStatus,
+  useStoreActions,
+} from "@/stores/store";
+import { cn } from "@/lib/utils";
 
 const CodeBlock = ({
   inline,
@@ -149,19 +156,22 @@ const MarkdownComponents = {
   code: CodeBlock,
 };
 
-export function Output() {
-  const runOutputs = useOutputs();
+export function OutputDisplay() {
+  const outputs = useOutputs();
   const runStatus = useRunStatus();
   const [jsonView, setJsonView] = useState(false);
-  const [autoScroll, setAutoScroll] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const autoScroll = useAutoScroll();
+  const { setAutoScroll } = useStoreActions();
 
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
     if (autoScroll && scrollContainer) {
-      scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      setTimeout(() => {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }, 0);
     }
-  }, [runOutputs, autoScroll]);
+  }, [outputs, autoScroll]);
 
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
@@ -170,35 +180,43 @@ export function Output() {
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
       const isScrolledToBottom =
-        Math.abs(scrollHeight - scrollTop - clientHeight) < 1;
+        Math.abs(scrollHeight - scrollTop - clientHeight) < 10;
       setAutoScroll(isScrolledToBottom);
     };
 
     scrollContainer.addEventListener("scroll", handleScroll);
     return () => scrollContainer.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [setAutoScroll]);
 
-  const renderValue = (value: unknown) => {
-    if (typeof value === "string") {
+  const renderValue = (output: Output) => {
+    if (output.role === "system") {
       return (
-        <ReactMarkdown className="max-w-none" components={MarkdownComponents}>
-          {value}
-        </ReactMarkdown>
+        <div className="flex flex-col gap-2">
+          <h2 className="mb-2 text-3xl font-bold text-primary">
+            {output.path}
+          </h2>
+          <ReactMarkdown className="max-w-none" components={MarkdownComponents}>
+            {output.content}
+          </ReactMarkdown>
+        </div>
       );
     }
+
     return (
-      <pre className="whitespace-pre-wrap break-words rounded-lg bg-secondary p-4 text-sm text-muted-foreground">
-        {typeof value === "object"
-          ? JSON.stringify(value, null, 2)
-          : String(value)}
-      </pre>
+      <div className="flex justify-end">
+        <div className="max-w-3/4">
+          <div className="rounded-lg bg-primary p-2 text-primary-foreground">
+            {output.content}
+          </div>
+        </div>
+      </div>
     );
   };
 
   return (
-    <Card className="relative w-full">
-      <CardContent className="group flex flex-1 flex-col pr-1 pt-6">
-        {Object.keys(runOutputs).length > 0 && (
+    <Card className="h-full w-full">
+      <CardContent className="group relative flex h-full flex-col p-0">
+        {outputs.length > 0 && (
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -221,33 +239,32 @@ export function Output() {
             </Tooltip>
           </TooltipProvider>
         )}
-        <div
-          ref={scrollContainerRef}
-          className="scrollbar-w-0 flex-1 overflow-y-auto rounded-lg pr-5"
-        >
-          {jsonView ? (
-            <pre className="whitespace-pre-wrap break-words text-sm text-muted-foreground">
-              {JSON.stringify(runOutputs, null, 2)}
-            </pre>
-          ) : (
-            <div className="space-y-8">
-              {Object.entries(runOutputs).map(([key, value]) => (
-                <div key={key} className="flex flex-col gap-2">
-                  <h2 className="mb-2 text-3xl font-bold text-primary">
-                    {key}
-                  </h2>
-                  {renderValue(value)}
-                </div>
-              ))}
+        <div className="flex h-full flex-col justify-between">
+          <div
+            ref={scrollContainerRef}
+            className={cn(
+              "scrollbar-w-0 flex-1 overflow-y-auto rounded-lg p-4 lg:p-8",
+            )}
+          >
+            {jsonView ? (
+              <pre className="whitespace-pre-wrap break-words text-sm text-muted-foreground">
+                {JSON.stringify(outputs, null, 2)}
+              </pre>
+            ) : (
+              <div className="space-y-8">
+                {outputs.map((output, index) => (
+                  <div key={index}>{renderValue(output)}</div>
+                ))}
+              </div>
+            )}
+          </div>
+          {runStatus === "AWAITING_INPUT" && !jsonView && (
+            <div className="w-full rounded-b-lg bg-background p-2 lg:px-6 lg:py-4">
+              <AskInput />
             </div>
           )}
         </div>
       </CardContent>
-      {runStatus === "AWAITING_INPUT" && !jsonView && (
-        <div className="absolute bottom-2 left-2.5 w-full">
-          <AskInput />
-        </div>
-      )}
     </Card>
   );
 }

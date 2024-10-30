@@ -15,10 +15,10 @@ import { AppWithVersions, Version } from "@/types/types";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 
+import { useApps, useStoreActions } from "@/stores/store";
 import { useParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { NavBreadcrumb } from "./nav-breadcrumb";
-import { useApiKey, useApps, useStoreActions } from "@/stores/store";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -28,7 +28,6 @@ export function AppLayout({ children }: AppLayoutProps) {
   const apps = useApps();
   const { updateApps, updateApiKey, setCurrentVersion, setCurrentApp } =
     useStoreActions();
-  const apiKey = useApiKey();
 
   const [isFetching, setIsFetching] = useState(true);
   const [isClient, setIsClient] = useState(false);
@@ -82,18 +81,12 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="flex h-14 items-center justify-between border-b px-6 py-3">
         <Logo className="size-32" />
         <div className="flex items-center justify-end gap-2">
-          <KeyInput
-            apiKey={apiKey}
-            updateApiKey={updateApiKey}
-            updateApps={updateApps}
-            apps={apps}
-            setIsFetching={setIsFetching}
-          />
+          <KeyInput setIsFetching={setIsFetching} />
           <ThemeToggle />
         </div>
       </div>
       <div className="flex flex-1 overflow-hidden">
-        <div className="w-64 overflow-y-auto border-r">
+        <div className="w-56 overflow-y-auto border-r">
           <div className="mb-2 border-b p-2">
             <Link
               className={cn(

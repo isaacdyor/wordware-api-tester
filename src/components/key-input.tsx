@@ -8,22 +8,17 @@ import { z } from "zod";
 import { Button } from "./ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
+import { useApiKey, useApps, useStoreActions } from "@/stores/store";
 
 interface KeyInputProps {
-  apiKey: string;
-  updateApiKey: (newApiKey: string) => void;
-  updateApps: (newApps: AppWithVersions[] | null) => void;
-  apps: AppWithVersions[] | null;
   setIsFetching: (isFetching: boolean) => void;
 }
 
-export function KeyInput({
-  apiKey,
-  updateApiKey,
-  updateApps,
-  apps,
-  setIsFetching,
-}: KeyInputProps) {
+export function KeyInput({ setIsFetching }: KeyInputProps) {
+  const apiKey = useApiKey();
+  const { updateApiKey, updateApps } = useStoreActions();
+  const apps = useApps();
+
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -127,6 +122,7 @@ export function KeyInput({
         console.error("Failed to fetch apps:", error);
       } finally {
         setIsFetching(false);
+        setOpen(false);
       }
     },
     [setIsFetching, updateApps],
@@ -150,11 +146,11 @@ export function KeyInput({
     }
   };
 
-  useEffect(() => {
-    if (apiKey) {
-      fetchApps(apiKey);
-    }
-  }, [apiKey, fetchApps]);
+  // useEffect(() => {
+  //   if (apiKey) {
+  //     fetchApps(apiKey);
+  //   }
+  // }, [apiKey, fetchApps]);
 
   return open ? (
     <div className="flex w-full items-center gap-1">

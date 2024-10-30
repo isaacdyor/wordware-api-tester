@@ -1,11 +1,4 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { timeAgo } from "@/lib/utils";
 import { useApps, useStoreActions } from "@/stores/store";
 import { RunInput, RunWithInputs } from "@/types/types";
@@ -41,7 +34,7 @@ export function RunTable({ setInputValues, setTab }: RunTableProps) {
       },
       {},
     );
-    setOutputs(run.outputs as Record<string, string>);
+    setOutputs(run.outputs);
     setInputValues(inputValues);
     setTab("playground");
   };
@@ -49,11 +42,6 @@ export function RunTable({ setInputValues, setTab }: RunTableProps) {
   return (
     <div className="rounded-md border">
       <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Time</TableHead>
-          </TableRow>
-        </TableHeader>
         <TableBody>
           {sortedRuns.map((run) => (
             <TableRow

@@ -30,7 +30,7 @@ export function WordAppForm({ form }: WordAppFormProps) {
     <Card className="flex w-full min-w-48 max-w-80 shrink-0 flex-col gap-1">
       <CardContent className="p-4">
         {currentVersion?.inputs.length && currentVersion.inputs.length > 0 && (
-          <h4 className="text-md font-semibold">Inputs:</h4>
+          <h4 className="text-md pb-2 font-semibold">Inputs:</h4>
         )}
         <Form {...form}>
           <form

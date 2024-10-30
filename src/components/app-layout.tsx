@@ -19,7 +19,6 @@ import { useApps, useStoreActions } from "@/stores/store";
 import { useParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { NavBreadcrumb } from "./nav-breadcrumb";
-import { Trial } from "./trial";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -99,7 +98,6 @@ export function AppLayout({ children }: AppLayoutProps) {
               <Plus /> Create App
             </Link>
           </div>
-          <Trial />
         </div>
         <div className="flex flex-1 flex-col overflow-hidden">
           <div className="flex items-center gap-4 border-b px-4 py-1.5">

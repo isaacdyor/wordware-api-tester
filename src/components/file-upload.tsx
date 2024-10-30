@@ -74,11 +74,14 @@ export function FileUpload({ type, field }: FileUploadProps) {
     field.onChange(null);
   }, [field]);
 
+  const parsedValue = field.value ? JSON.parse(field.value) : null;
+  console.log(parsedValue);
+
   return (
     <div className="space-y-4">
       {field.value ? (
         <div className="flex w-fit items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm text-card-foreground">
-          {field.value.fileName}
+          {parsedValue.fileName}
           <X
             className="h-4 w-4 transition-colors hover:cursor-pointer hover:text-muted-foreground"
             onClick={handleRemove}

@@ -78,10 +78,11 @@ export default function AppDetail() {
             <OutputDisplay />
           </div>
         </TabsContent>
-        <TabsContent value="api" className="flex-1">
-          V0 API
-        </TabsContent>
-        <TabsContent value="previous-runs" className="flex-1">
+        <TabsContent value="api">V0 API</TabsContent>
+        <TabsContent
+          value="previous-runs"
+          className="flex-1 overflow-hidden data-[state=inactive]:hidden"
+        >
           <RunTable setTab={setTab} setInputValues={setInputValues} />
         </TabsContent>
       </Tabs>

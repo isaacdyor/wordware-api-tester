@@ -166,11 +166,11 @@ export function KeyInput({ setIsFetching }: KeyInputProps) {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <div className="flex">
+                  <div className="group flex w-full rounded-md focus-within:ring-1 focus-within:ring-ring">
                     <Input
                       disabled={isSubmitting}
                       placeholder="API Key"
-                      className="w-[488px] rounded-r-none"
+                      className="w-[488px] rounded-r-none border-r-0"
                       {...field}
                     />
                     <Button

@@ -47,26 +47,28 @@ const CodeBlock = ({
   return (
     <div className="relative">
       <pre className="mb-4 mt-2 overflow-x-auto rounded-lg bg-secondary p-4">
-        <div className="absolute right-2 top-2 flex items-center gap-2">
-          {language && (
-            <span className="text-xs text-muted-foreground">{language}</span>
-          )}
-          <Button
-            variant="secondary"
-            size="icon"
-            className="transition-all hover:border-muted-foreground"
-            onClick={handleCopy}
-          >
-            {copied ? (
-              <Check className="h-4 w-4" />
-            ) : (
-              <Copy className="h-4 w-4" />
+        <div className="inline-block min-w-[100%]">
+          <div className="absolute right-2 top-2 flex items-center gap-2">
+            {language && (
+              <span className="text-xs text-muted-foreground">{language}</span>
             )}
-          </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              className="transition-all hover:border-muted-foreground"
+              onClick={handleCopy}
+            >
+              {copied ? (
+                <Check className="h-4 w-4" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <code className={className} {...props}>
+            {children}
+          </code>
         </div>
-        <code className={className} {...props}>
-          {children}
-        </code>
       </pre>
     </div>
   );
@@ -195,7 +197,7 @@ export function OutputDisplay() {
           <h2 className="mb-2 text-3xl font-bold text-primary">
             {output.path}
           </h2>
-          <ReactMarkdown className="max-w-none" components={MarkdownComponents}>
+          <ReactMarkdown components={MarkdownComponents}>
             {output.content}
           </ReactMarkdown>
         </div>
@@ -214,7 +216,7 @@ export function OutputDisplay() {
   };
 
   return (
-    <Card className="h-full w-full">
+    <Card className="h-full w-full overflow-x-hidden">
       <CardContent className="group relative flex h-full flex-col p-0">
         {outputs.length > 0 && (
           <TooltipProvider delayDuration={0}>

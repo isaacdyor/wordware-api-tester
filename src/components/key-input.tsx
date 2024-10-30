@@ -1,156 +1,20 @@
-import { fetchAppVersions, fetchWordApps } from "@/actions/actions";
-import { AppWithVersions } from "@/types/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useApiKeyForm } from "@/hooks/useApiKeyForm";
 import { Key, Loader2, Save, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { useState } from "react";
 import { Button } from "./ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
-import { useApiKey, useApps, useStoreActions } from "@/stores/store";
+import { useAppsLoading } from "@/stores/store";
 
-interface KeyInputProps {
-  setIsFetching: (isFetching: boolean) => void;
-}
-
-export function KeyInput({ setIsFetching }: KeyInputProps) {
-  const apiKey = useApiKey();
-  const { updateApiKey, updateApps } = useStoreActions();
-  const apps = useApps();
-
+export function KeyInput() {
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const appsLoading = useAppsLoading();
+  const { form, error, onSubmit } = useApiKeyForm();
 
-  const formSchema = z.object({
-    apiKey: z.string(),
-  });
-
-  type FormData = z.infer<typeof formSchema>;
-
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      apiKey: "",
-    },
-  });
-
-  // set the default value once loaded from local storage
-  useEffect(() => {
-    form.reset({ apiKey: apiKey ?? "" });
-  }, [apiKey, form]);
-
-  const appsRef = useRef(apps);
-
-  useEffect(() => {
-    appsRef.current = apps;
-  }, [apps]);
-
-  const fetchApps = useCallback(
-    async (apiKey: string) => {
-      setIsFetching(true);
-      try {
-        const fetchedApps = await fetchWordApps(apiKey);
-        const appsWithVersions: AppWithVersions[] = [];
-
-        for (const app of fetchedApps) {
-          try {
-            const versions = await fetchAppVersions(
-              apiKey,
-              app.orgSlug,
-              app.appSlug,
-            );
-
-            const versionsSorted = versions.reverse();
-
-            // Find existing app to check for selected version
-            const existingApp = appsRef.current?.find(
-              (a) => a.appSlug === app.appSlug,
-            );
-
-            const versionWithRuns = versionsSorted.map((version) => {
-              const existingVersion = existingApp?.versions.find(
-                (v) => v.version === version.version,
-              );
-              if (existingVersion) {
-                return {
-                  ...version,
-                  runs: existingVersion.runs,
-                };
-              } else {
-                return {
-                  ...version,
-                  runs: [],
-                };
-              }
-            });
-
-            // Determine selected version
-            let selectedVersion = versionsSorted[0]?.version || "";
-            if (existingApp?.selectedVersion) {
-              // Check if the previously selected version still exists
-              const versionStillExists = versionsSorted.some(
-                (v) => v.version === existingApp.selectedVersion,
-              );
-              if (versionStillExists) {
-                selectedVersion = existingApp.selectedVersion;
-              }
-            }
-
-            appsWithVersions.push({
-              ...app,
-              versions: versionWithRuns,
-              selectedVersion,
-            });
-          } catch (versionError) {
-            console.error(
-              `Error fetching versions for ${app.appSlug}:`,
-              versionError,
-            );
-          }
-        }
-
-        appsWithVersions.sort(
-          (a, b) =>
-            new Date(b.lastUpdated).getTime() -
-            new Date(a.lastUpdated).getTime(),
-        );
-
-        updateApps(appsWithVersions);
-      } catch (error) {
-        console.error("Failed to fetch apps:", error);
-      } finally {
-        setIsFetching(false);
-        setOpen(false);
-      }
-    },
-    [setIsFetching, updateApps],
-  );
-
-  const onSubmit = async (data: FormData) => {
-    setError(null);
-    setIsSubmitting(true);
-    try {
-      updateApiKey(data.apiKey);
-      setIsFetching(true);
-      await fetchApps(data.apiKey);
-    } catch (error) {
-      console.error("Failed to fetch apps:", error);
-      setError(
-        "Failed to fetch apps. Please check your API key and try again.",
-      );
-    } finally {
-      setIsSubmitting(false);
-      setIsFetching(false);
-    }
+  const handleSubmit = async (data: { apiKey: string }) => {
+    await onSubmit(data);
+    setOpen(false);
   };
-
-  useEffect(() => {
-    if (apiKey) {
-      fetchApps(apiKey);
-    }
-  }, [apiKey, fetchApps]);
 
   return open ? (
     <div className="flex w-full items-center gap-1">
@@ -159,7 +23,7 @@ export function KeyInput({ setIsFetching }: KeyInputProps) {
         onClick={() => setOpen(false)}
       />
       <Form {...form}>
-        <form className="w-full" onSubmit={form.handleSubmit(onSubmit)}>
+        <form className="w-full" onSubmit={form.handleSubmit(handleSubmit)}>
           <FormField
             control={form.control}
             name="apiKey"
@@ -168,19 +32,19 @@ export function KeyInput({ setIsFetching }: KeyInputProps) {
                 <FormControl>
                   <div className="group flex w-full rounded-md focus-within:ring-1 focus-within:ring-ring">
                     <Input
-                      disabled={isSubmitting}
+                      disabled={appsLoading}
                       placeholder="API Key"
                       className="w-[488px] rounded-r-none border-r-0"
                       {...field}
                     />
                     <Button
-                      disabled={isSubmitting}
+                      disabled={appsLoading}
                       type="submit"
                       size="icon"
                       className="rounded-l-none px-2 text-muted-foreground"
                       variant="secondary"
                     >
-                      {isSubmitting ? (
+                      {appsLoading ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <Save className="h-4 w-4" />

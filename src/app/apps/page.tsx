@@ -1,17 +1,25 @@
 "use client";
 
+import KeyDialog from "@/components/key-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { WordAppCard } from "@/components/word-app-card";
-import { useApiKey, useApps } from "@/stores/store";
+import { useApiKey, useApps, useAppsLoading } from "@/stores/store";
 import Link from "next/link";
 
 export default function AppsPage() {
   const apps = useApps();
   const apiKey = useApiKey();
-  console.log(apiKey);
+  const appsLoading = useAppsLoading();
 
-  return (
+  return apiKey ? (
     <>
-      {apps && apps.length > 0 ? (
+      {appsLoading ? (
+        <ul className="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <Skeleton key={i} className="h-[196px]" />
+          ))}
+        </ul>
+      ) : apps && apps.length > 0 ? (
         <ul className="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {apps.map((app) => {
             return (
@@ -50,5 +58,7 @@ export default function AppsPage() {
         )
       )}
     </>
+  ) : (
+    <KeyDialog />
   );
 }

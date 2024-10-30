@@ -15,10 +15,16 @@ import { AppWithVersions, Version } from "@/types/types";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 
-import { useApps, useStoreActions } from "@/stores/store";
+import {
+  useApiKey,
+  useApps,
+  useBackgroundRefresh,
+  useStoreActions,
+} from "@/stores/store";
 import { useParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { NavBreadcrumb } from "./nav-breadcrumb";
+import { useApiKeyForm } from "@/hooks/useApiKeyForm";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -26,16 +32,29 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const apps = useApps();
-  const { updateApps, updateApiKey, setCurrentVersion, setCurrentAppId } =
-    useStoreActions();
+  const apiKey = useApiKey();
+  const {
+    updateApps,
+    updateApiKey,
+    setCurrentVersion,
+    setCurrentAppId,
+    setBackgroundRefresh,
+  } = useStoreActions();
+  const backgroundRefresh = useBackgroundRefresh();
+  const { fetchApps } = useApiKeyForm();
 
-  const [isFetching, setIsFetching] = useState(true);
   const [isClient, setIsClient] = useState(false);
   const params = useParams<{ appSlug: string }>();
 
   useLayoutEffect(() => {
     setIsClient(true);
   }, []);
+  useEffect(() => {
+    if (apiKey) {
+      setBackgroundRefresh(true);
+      fetchApps(apiKey);
+    }
+  }, [apiKey, fetchApps, setBackgroundRefresh]);
 
   // Sync data from local storage
   useEffect(() => {
@@ -70,7 +89,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="flex h-14 items-center justify-between border-b px-6 py-3">
         <Logo className="size-32" />
         <div className="flex items-center justify-end gap-2">
-          <KeyInput setIsFetching={setIsFetching} />
+          <KeyInput />
           <ThemeToggle />
         </div>
       </div>
@@ -98,12 +117,12 @@ export function AppLayout({ children }: AppLayoutProps) {
                       <div
                         className={cn(
                           "h-2 w-2 rounded-full bg-green-500",
-                          isFetching && "animate-pulse bg-yellow-500",
+                          backgroundRefresh && "animate-pulse bg-yellow-500",
                         )}
                       />
                     </TooltipTrigger>
                     <TooltipContent>
-                      {isFetching
+                      {backgroundRefresh
                         ? "Checking for updates..."
                         : "All apps are up to date"}
                     </TooltipContent>

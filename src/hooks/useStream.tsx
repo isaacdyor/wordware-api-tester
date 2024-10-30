@@ -42,9 +42,6 @@ export function useStream() {
 
       if (done) {
         // the key to the world
-        if (outputRef.current.length === 0) {
-          continue;
-        }
         setRunStatus("COMPLETE");
         const inputs = Object.entries(values).map(([name, value]) => {
           const input = currentVersion?.inputs.find((i) => i.name === name);
@@ -102,7 +99,6 @@ export function useStream() {
           if (jsonBuffer.trim().endsWith("}")) {
             try {
               const data = JSON.parse(jsonBuffer);
-              console.log(data);
               if (
                 data.type === "chunk" &&
                 (!data.content || data.path === "{}")

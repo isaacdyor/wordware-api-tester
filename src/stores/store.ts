@@ -12,6 +12,8 @@ interface StoreState {
   ask: Ask | null;
   runId: string | null;
   autoScroll: boolean;
+  appsLoading: boolean;
+  backgroundRefresh: boolean;
 
   // Actions
   updateApps: (newApps: AppWithVersions[] | null) => void;
@@ -27,7 +29,8 @@ interface StoreState {
   setAsk: (ask: Ask | null) => void;
   setRunId: (runId: string | null) => void;
   setAutoScroll: (autoScroll: boolean) => void;
-
+  setAppsLoading: (loading: boolean) => void;
+  setBackgroundRefresh: (refresh: boolean) => void;
   // Selectors
   getCurrentApp: () => AppWithVersions | null;
   getCurrentVersion: () => VersionWithRuns | null;
@@ -45,7 +48,8 @@ export const useStore = create<StoreState>((set, get) => ({
   ask: null,
   runId: null,
   autoScroll: true,
-
+  appsLoading: false,
+  backgroundRefresh: false,
   // Actions
   updateApps: (newApps) => {
     if (newApps) {
@@ -96,7 +100,8 @@ export const useStore = create<StoreState>((set, get) => ({
   setAsk: (ask) => set({ ask }),
   setRunId: (runId) => set({ runId }),
   setAutoScroll: (autoScroll) => set({ autoScroll }),
-
+  setAppsLoading: (loading) => set({ appsLoading: loading }),
+  setBackgroundRefresh: (refresh) => set({ backgroundRefresh: refresh }),
   // Selectors
   getCurrentApp: () => {
     const { apps, currentAppId } = get();
@@ -129,7 +134,9 @@ export const useAsk = () => useStore((state) => state.ask);
 export const useRunId = () => useStore((state) => state.runId);
 export const useOutputRef = () => useStore((state) => state.outputRef);
 export const useAutoScroll = () => useStore((state) => state.autoScroll);
-
+export const useAppsLoading = () => useStore((state) => state.appsLoading);
+export const useBackgroundRefresh = () =>
+  useStore((state) => state.backgroundRefresh);
 // Action hooks
 export const useStoreActions = () => ({
   updateApps: useStore((state) => state.updateApps),
@@ -143,4 +150,6 @@ export const useStoreActions = () => ({
   setAsk: useStore((state) => state.setAsk),
   setRunId: useStore((state) => state.setRunId),
   setAutoScroll: useStore((state) => state.setAutoScroll),
+  setAppsLoading: useStore((state) => state.setAppsLoading),
+  setBackgroundRefresh: useStore((state) => state.setBackgroundRefresh),
 });

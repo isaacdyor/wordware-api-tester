@@ -39,7 +39,7 @@ export function RunTable({ setInputValues, setTab }: RunTableProps) {
     setTab("playground");
   };
 
-  return (
+  return sortedRuns.length > 0 ? (
     <div className="max-h-full overflow-y-auto rounded-md border">
       <Table>
         <TableBody>
@@ -57,5 +57,9 @@ export function RunTable({ setInputValues, setTab }: RunTableProps) {
         </TableBody>
       </Table>
     </div>
+  ) : (
+    <p className="pt-4 text-center text-sm text-muted-foreground">
+      No runs found for this version.
+    </p>
   );
 }

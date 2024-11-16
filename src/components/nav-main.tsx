@@ -15,6 +15,7 @@ import Link from "next/link";
 
 export function NavMain() {
   const apps = useApps();
+  console.log(apps);
 
   const params = useParams();
   const appSlug = params.appSlug as string;
@@ -24,7 +25,7 @@ export function NavMain() {
       <SidebarGroupLabel>Word Apps</SidebarGroupLabel>
       <SidebarMenu>
         {apps?.map((app) => (
-          <Link href={`/chat/${app.appSlug}`} key={app.appSlug}>
+          <Link href={`/apps/${app.appSlug}`} key={app.appSlug}>
             <SidebarMenuItem>
               <SidebarMenuButton
                 className={cn(app.appSlug === appSlug && "bg-muted")}

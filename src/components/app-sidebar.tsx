@@ -3,6 +3,7 @@
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarHeader,
   SidebarInset,
@@ -49,7 +50,9 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
         </SidebarContent>
 
         <SidebarRail />
+        <SidebarFooter></SidebarFooter>
       </Sidebar>
+
       <SidebarInset>{children}</SidebarInset>
     </SidebarProvider>
   );

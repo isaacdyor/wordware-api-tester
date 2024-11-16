@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
-import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { AppLayout } from "@/components/app-layout";
-import { GeistSans } from "geist/font/sans";
 import { AppSidebar } from "@/components/app-sidebar";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Topbar } from "@/components/topbar";
+import { GeistSans } from "geist/font/sans";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${GeistSans.className} antialiased`}>
@@ -25,7 +25,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AppSidebar>{children}</AppSidebar>
+          <AppSidebar>
+            <Topbar>{children}</Topbar>
+          </AppSidebar>
         </ThemeProvider>
       </body>
     </html>
